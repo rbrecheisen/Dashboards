@@ -4,7 +4,8 @@ library(tidyverse)
 library(rstudioapi)
 
 
-setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+# setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+setwd(file.path("D:", "TemporaryData"))
 dir.create("neiss")
 
 
