@@ -1,0 +1,10 @@
+TODO
+
+- Build dataframe from study data
+
+X Read API credentials from file
+
+
+TODO LATER
+
+- Create update button that loads data from Castor API instead of periodic updates
