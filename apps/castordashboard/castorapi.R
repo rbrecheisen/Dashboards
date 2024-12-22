@@ -3,6 +3,7 @@ library(R6)
 library(jsonlite)
 library(dplyr)
 library(stringr)
+library(readr)
 
 
 CastorAPI <- R6Class(
@@ -113,32 +114,29 @@ CastorAPI <- R6Class(
     # and structure
     # - study_id: The study ID to retrieve data from
     # - data_type: Data type. Must be one of ["data", "optiongroup", "structure"]
-    # - write_to_file: Whether to write the CSV data to file or not
+    # - tpm_dir: Temporary directory for storing output files
     # return: Study data in CSV format
-    get_study_data_as_csv = function(study_id, data_type, write_to_file = FALSE) {
+    get_study_data_as_csv = function(study_id, data_type, tmp_dir = NULL) {
       stopifnot(data_type %in% c('data', 'optiongroups', 'structure'))
       url <- paste0(self$api_base_url, "/study/", study_id, "/export/", data_type)
-      print(url)
       count <- 0; status_code <- 0; response <- NULL
       while(status_code != 200 && count <= self$nr_retries) {
         response <- GET(url, add_headers(Authorization = paste("Bearer", self$token)))
         status_code <- response$status_code
-        print(status_code)
         if(status_code == 200) {
           break
         } else if(count == self$nr_retries) {
           message(sprintf("Could not retrieve %s for study ID %s (status: %d)", data_type, study_id, status_code))
           return(NULL)
         }
-        message(sprintf("Retrying retrieval of %s (attempt %d)...", data_type, count + 1))
         count <- count + 1
         Sys.sleep(self$retry_waiting_time)
       }
       content <- content(response, as = "text", encoding = "UTF-8")
-      if (write_to_file) {
+      if(!is.null(tmp_dir)) {
         study_name <- self$get_study_name_by_id(study_id)
-        dir.create(file.path("testdata", study_name), recursive = TRUE, showWarnings = FALSE)
-        file_path <- file.path("testdata", study_name, paste0(data_type, ".csv"))
+        dir.create(file.path(tmp_dir, study_name), recursive = TRUE, showWarnings = FALSE)
+        file_path <- file.path(tmp_dir, study_name, paste0(data_type, ".csv"))
         writeLines(content, file_path, useBytes = TRUE)
         message(sprintf("Data written to %s", file_path))
       }
@@ -156,6 +154,25 @@ CastorAPI <- R6Class(
     get_option_names_and_values = function() {
       
     },
+    
+    get_record_value = function(field_id, record_id, data) {
+      for(record in data) {
+        if(!is.na(record[["Field ID"]]) && record[["Field ID"]] == field_id && record[["Record ID"]] == record_id) {
+          return(record[["Value"]])
+        }
+      }
+      return("")
+    },
+    
+    # ==========================================================================
+    # Loads CSV data as a list of dictionaries (each row one dictionary)
+    # - csv_data: CSV data as text
+    # return: List of dictionaries
+    load_csv_data = function(csv_data) {
+      dict_data <- read_delim(csv_data, delim = ";", col_names = TRUE, show_col_types = FALSE)
+      dict_data_list <- split(dict_data, seq(nrow(dict_data)))
+      return(dict_data_list)
+    },
 
     # ==========================================================================
     # One-hot encodes multi-value columns (checkboxes)
@@ -165,6 +182,40 @@ CastorAPI <- R6Class(
     # return: Dataframe with one-hot encoded multi-value columns
     one_hot_encode_multi_value_columns = function(df, structure, optiongroups) {
       return(df)
+    },
+    
+    # ==========================================================================
+    # Returns study data as a dataframe
+    # - study_id: ID of the study to retrieve
+    # return: Dataframe with study data
+    get_study_data_as_dataframe = function(study_id, tmp_dir = NULL) {
+      
+      structure <- self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
+      optiongroups <- self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
+      data <- self$load_csv_data(self$get_study_data_as_csv(study_id, "data", tmp_dir))
+      
+      records <- list()
+      for(record in data) {
+        if(is.na(record[["Field ID"]])) {
+          new_record <- list("Record ID" = record[["Record ID"]])
+          for(field_def in structure) {
+            new_record[[field_def[["Field Variable Name"]]]] <- ""
+          }
+          records <- append(records, list(new_record))
+        }
+      }
+      
+      values = list()
+      for(record in records) {
+        for(field_def in structure) {
+          field_id = field_def[["Field ID"]]
+          field_variable_name = field_def[["Field Variable Name"]]
+          value = self$get_record_value(field_id, record[["Record ID"]], data)
+          values = append(values, value)
+        }
+      }
+      
+      return(records)
     }
   )
 )
