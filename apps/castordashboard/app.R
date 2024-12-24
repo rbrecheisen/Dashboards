@@ -27,3 +27,7 @@ client = CastorAPI$new(client_id = api_client_id, client_secret = api_client_sec
 study_name = "ESPRESSO_v3.0"
 df = client$get_study_data_as_dataframe(study_name, tmp_dir)
 df
+
+
+# CREATE BAR CHART FOR NR. OF LIVER PROCEDURES PER MONTH
+

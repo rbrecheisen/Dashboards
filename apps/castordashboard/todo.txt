@@ -1,7 +1,8 @@
 TODO
 
-- Build dataframe from study data
+- Create bar chart for number of liver procedures per month
 
+X Build dataframe from study data
 X Read API credentials from file
 
 
