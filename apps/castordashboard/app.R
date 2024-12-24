@@ -1,7 +1,5 @@
 library(rprojroot)
 library(yaml)
-library(dplyr)
-library(tidyverse)
 
 
 # APP INITIALIZATION
