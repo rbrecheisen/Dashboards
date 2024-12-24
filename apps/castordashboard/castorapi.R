@@ -4,6 +4,7 @@ library(jsonlite)
 library(dplyr)
 library(stringr)
 library(readr)
+library(janitor)
 
 
 CastorAPI <- R6Class(
@@ -187,13 +188,14 @@ CastorAPI <- R6Class(
         option_values = optiongroups$`Option Value`[optiongroups$`Option Group Id` == optiongroup_id]
         option_names = optiongroups$`Option Name`[optiongroups$`Option Group Id` == optiongroup_id]
         for(i in 1:length(option_values)) {
-          df[[paste0(column, "#", option_names[i])]] <- sapply(df[[column]], function(x) {
+          df[[paste0(column, "_", option_names[i])]] <- sapply(df[[column]], function(x) {
             option_values[i] %in% unlist(strsplit(x, ";"))
           }) * 1
         }
       }
       df = df %>% select(-all_of(multi_value_columns))
       df = df %>% select(-"NA")
+      df = df %>% clean_names()
       write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
       return(df)
     }
