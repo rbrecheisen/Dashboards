@@ -143,35 +143,13 @@ CastorAPI <- R6Class(
       return(content)
     },
     
-    get_field_type = function() {
-      
-    },
-    
-    get_optiongroup_id = function() {
-      
-    },
-    
-    get_option_names_and_values = function() {
-      
-    },
-    
-    get_record_value = function(field_id, record_id, data) {
-      for(record in data) {
-        if(!is.na(record[["Field ID"]]) && record[["Field ID"]] == field_id && record[["Record ID"]] == record_id) {
-          return(record[["Value"]])
-        }
-      }
-      return("")
-    },
-    
     # ==========================================================================
     # Loads CSV data as a list of dictionaries (each row one dictionary)
     # - csv_data: CSV data as text
     # return: List of dictionaries
     load_csv_data = function(csv_data) {
-      dict_data <- read_delim(csv_data, delim = ";", col_names = TRUE, show_col_types = FALSE)
-      dict_data_list <- split(dict_data, seq(nrow(dict_data)))
-      return(dict_data_list)
+      dict_data <- read_delim(csv_data, delim = ";", col_names = TRUE, show_col_types = FALSE, name_repair = "minimal")
+      return(dict_data)
     },
 
     # ==========================================================================
@@ -186,36 +164,38 @@ CastorAPI <- R6Class(
     
     # ==========================================================================
     # Returns study data as a dataframe
-    # - study_id: ID of the study to retrieve
+    # - study_name: Name of the study to retrieve
     # return: Dataframe with study data
-    get_study_data_as_dataframe = function(study_id, tmp_dir = NULL) {
-      
-      structure <- self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
-      optiongroups <- self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
+    get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {
+      study_id = self$get_study_id_by_name(study_name)
+      structure = self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
+      optiongroups = self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
       data <- self$load_csv_data(self$get_study_data_as_csv(study_id, "data", tmp_dir))
-      
-      records <- list()
-      for(record in data) {
-        if(is.na(record[["Field ID"]])) {
-          new_record <- list("Record ID" = record[["Record ID"]])
-          for(field_def in structure) {
-            new_record[[field_def[["Field Variable Name"]]]] <- ""
-          }
-          records <- append(records, list(new_record))
+      # Merge datasets and build initial dataframe
+      data = data %>%
+        left_join(
+          field_defs, by = "Field ID") %>%
+        select(
+          `Record ID`, `Field Variable Name`, `Value`)
+      df = data %>%
+        pivot_wider(
+          id_cols = `Record ID`, names_from = `Field Variable Name`, values_from = `Value`)
+      # One-hot encode multi-value columns
+      multi_value_columns = field_defs$`Field Variable Name`[field_defs$`Field Type` == "checkbox"]
+      for(column in multi_value_columns) {
+        optiongroup_id = field_defs$`Field Option Group`[field_defs$`Field Variable Name` == column]
+        option_values = optiongroups$`Option Value`[optiongroups$`Option Group Id` == optiongroup_id]
+        option_names = optiongroups$`Option Name`[optiongroups$`Option Group Id` == optiongroup_id]
+        for(i in 1:length(option_values)) {
+          df[[paste0(column, "#", option_names[i])]] <- sapply(df[[column]], function(x) {
+            option_values[i] %in% unlist(strsplit(x, ";"))
+          }) * 1
         }
       }
-      
-      values = list()
-      for(record in records) {
-        for(field_def in structure) {
-          field_id = field_def[["Field ID"]]
-          field_variable_name = field_def[["Field Variable Name"]]
-          value = self$get_record_value(field_id, record[["Record ID"]], data)
-          values = append(values, value)
-        }
-      }
-      
-      return(records)
+      df = df %>% select(-all_of(multi_value_columns))
+      df = df %>% select(-"NA")
+      write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
+      return(df)
     }
   )
 )
