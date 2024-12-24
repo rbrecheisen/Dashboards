@@ -20,6 +20,7 @@ source("castorapi.R")
 
 api_client_id = utils_load_api_client_id(config$api_client_id_filepath)
 api_client_secret = utils_load_api_client_secret(config$api_client_secret_filepath)
+
 client = CastorAPI$new(client_id = api_client_id, client_secret = api_client_secret, api_base_url = config$api_base_url, token_url = config$api_token_url)
 
 
