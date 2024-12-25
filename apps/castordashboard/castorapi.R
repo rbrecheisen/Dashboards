@@ -1,12 +1,3 @@
-library(httr)
-library(R6)
-library(jsonlite)
-library(dplyr)
-library(stringr)
-library(readr)
-library(janitor)
-
-
 CastorAPI <- R6Class(
   
   "CastorAPI",

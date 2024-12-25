@@ -1,46 +1,43 @@
+# Load required packages
 library(rprojroot)
 library(yaml)
+library(httr)
+library(R6)
+library(jsonlite)
+library(dplyr)
+library(stringr)
+library(readr)
+library(janitor)
+library(ggplot2)
+library(lubridate)
 
-
-# APP INITIALIZATION
-
+# Initialize app settings
 app_dir = rprojroot::find_root(rprojroot::is_rstudio_project)
 tmp_dir = file.path(tempdir(), "castordashboard")
-tmp_dir
 setwd(app_dir)
 config = yaml.load_file("config.yaml")
 source("utils.R")
-utils_load_packages(config$packages)
 source("castorapi.R")
 
+# Initialize Castor API client
+client = CastorAPI$new(
+  client_id = utils_load_api_client_id(config$api_client_id_filepath), 
+  client_secret = utils_load_api_client_secret(config$api_client_secret_filepath), 
+  api_base_url = config$api_base_url, 
+  token_url = config$api_token_url
+)
 
-# CASTOR API CLIENT INITIALIZATION
-
-api_client_id = utils_load_api_client_id(config$api_client_id_filepath)
-api_client_secret = utils_load_api_client_secret(config$api_client_secret_filepath)
-
-client = CastorAPI$new(client_id = api_client_id, client_secret = api_client_secret, api_base_url = config$api_base_url, token_url = config$api_token_url)
-
-
-# GET CASTOR DATA AS DATAFRAME
-
+# Retrieve Castor study data as a dataframe
 study_name = "ESPRESSO_v3.0"
 df = client$get_study_data_as_dataframe(study_name, tmp_dir)
 
-
-# CREATE BAR CHART FOR NR. OF LIVER PROCEDURES PER MONTH
-
+# Create barchart for nr. liver procedures per month
 df = df %>%
   filter(
     lever_pancreas == 0,
     operatie_lever_operatie_niet_doorgegaan != 1,
     resectie != 6
   )
-print(df$date_operatie)
-
-library(ggplot2)
-library(lubridate)
-
 df <- df %>%
   mutate(date_operatie = dmy(date_operatie)) %>%
   mutate(month = floor_date(date_operatie, "month")) %>%
