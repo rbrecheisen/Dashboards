@@ -160,7 +160,7 @@ CastorAPI <- R6Class(
     # return: Dataframe with study data
     get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {
       study_id = self$get_study_id_by_name(study_name)
-      structure = self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
+      field_defs = self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
       optiongroups = self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
       data <- self$load_csv_data(self$get_study_data_as_csv(study_id, "data", tmp_dir))
       # Merge datasets and build initial dataframe

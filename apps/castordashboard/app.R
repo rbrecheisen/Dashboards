@@ -1,15 +1,10 @@
 # Initialize app
-# Sys.setenv(CURL_CA_BUNDLE = "/etc/ssl/cert.pem")
 Sys.setenv(CURL_CA_BUNDLE = "/opt/homebrew/etc/ca-certificates/cert.pem")
-Sys.setenv(DYLD_INSERT_LIBRARIES = "/opt/homebrew/Cellar/curl/8.11.1/lib/libcurl.dylib")
-Sys.setenv(LD_LIBRARY_PATH = "/opt/homebrew/opt/curl/lib")
-Sys.setenv(CURL_CONFIG = "/opt/homebrew/opt/curl/bin/curl-config")
-# Sys.setenv(DYLD_FALLBACK_LIBRARY_PATH = "/opt/homebrew/opt/curl/lib")
-Sys.setenv(DYLD_FALLBACK_LIBRARY_PATH = "/usr/local/lib:/opt/homebrew/opt/curl/lib")
-options(download.file.method = "curl")
-options(url.method = "libcurl")
+Sys.setenv(LD_LIBRARY_PATH = "/opt/homebrew/lib")
 
-install.packages("curl", type = "source")
+# install.packages("curl", type = "source")
+install.packages("curl", type = "source",
+                 configure.args = "--with-curl-config=/opt/homebrew/opt/curl/bin/curl-config")
 
 if(!requireNamespace("rprojroot", quietly = TRUE)) {
   install.packages("rprojroot")
@@ -21,6 +16,7 @@ setwd(app_dir)
 tmp_dir = file.path(tempdir(), "castordashboard")
 
 required_packages <- c(
+  "curl",
   "yaml",
   "httr",
   "R6",
