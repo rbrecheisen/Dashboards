@@ -1,21 +1,46 @@
-# Load required packages
-library(rprojroot)
-library(yaml)
-library(httr)
-library(R6)
-library(jsonlite)
-library(dplyr)
-library(stringr)
-library(readr)
-library(janitor)
-library(ggplot2)
-library(lubridate)
+# Initialize app
+# Sys.setenv(CURL_CA_BUNDLE = "/etc/ssl/cert.pem")
+Sys.setenv(CURL_CA_BUNDLE = "/opt/homebrew/etc/ca-certificates/cert.pem")
+Sys.setenv(DYLD_INSERT_LIBRARIES = "/opt/homebrew/Cellar/curl/8.11.1/lib/libcurl.dylib")
+Sys.setenv(LD_LIBRARY_PATH = "/opt/homebrew/opt/curl/lib")
+Sys.setenv(CURL_CONFIG = "/opt/homebrew/opt/curl/bin/curl-config")
+# Sys.setenv(DYLD_FALLBACK_LIBRARY_PATH = "/opt/homebrew/opt/curl/lib")
+Sys.setenv(DYLD_FALLBACK_LIBRARY_PATH = "/usr/local/lib:/opt/homebrew/opt/curl/lib")
+options(download.file.method = "curl")
+options(url.method = "libcurl")
 
-# Initialize app settings
+install.packages("curl", type = "source")
+
+if(!requireNamespace("rprojroot", quietly = TRUE)) {
+  install.packages("rprojroot")
+}
+library(rprojroot)
+
 app_dir = rprojroot::find_root(rprojroot::is_rstudio_project)
-tmp_dir = file.path(tempdir(), "castordashboard")
 setwd(app_dir)
+tmp_dir = file.path(tempdir(), "castordashboard")
+
+required_packages <- c(
+  "yaml",
+  "httr",
+  "R6",
+  "jsonlite",
+  "tidyverse",
+  "janitor",
+  "lubridate",
+  "shiny",
+  "ggplot2"
+)
+
+missing_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if (length(missing_packages) > 0) {
+  install.packages(missing_packages)
+}
+
+invisible(lapply(required_packages, library, character.only = TRUE))
+
 config = yaml.load_file("config.yaml")
+
 source("utils.R")
 source("castorapi.R")
 

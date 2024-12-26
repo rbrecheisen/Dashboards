@@ -3,11 +3,3 @@ api_client_id_filepath: "C:\\Users\\r.brecheisen\\castorclientid.txt"
 api_client_secret_filepath: "C:\\Users\\r.brecheisen\\castorclientsecret.txt"
 api_token_url: "https://data.castoredc.com/oauth/token"
 api_base_url: "https://data.castoredc.com/api"
-
-# Required additional packages
-packages:
-  - httr
-  - R6
-  - dplyr
-  - stringr
-
