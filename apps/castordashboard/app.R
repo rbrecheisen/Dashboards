@@ -2,20 +2,20 @@
 Sys.setenv(CURL_CA_BUNDLE = "/opt/homebrew/etc/ca-certificates/cert.pem")
 Sys.setenv(LD_LIBRARY_PATH = "/opt/homebrew/lib")
 
-# install.packages("curl", type = "source")
 install.packages("curl", type = "source",
                  configure.args = "--with-curl-config=/opt/homebrew/opt/curl/bin/curl-config")
 
 if(!requireNamespace("rprojroot", quietly = TRUE)) {
   install.packages("rprojroot")
 }
+
 library(rprojroot)
 
 app_dir = rprojroot::find_root(rprojroot::is_rstudio_project)
 setwd(app_dir)
 tmp_dir = file.path(tempdir(), "castordashboard")
 
-required_packages <- c(
+required_packages = c(
   "curl",
   "yaml",
   "httr",
@@ -28,7 +28,7 @@ required_packages <- c(
   "ggplot2"
 )
 
-missing_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+missing_packages = required_packages[!(required_packages %in% installed.packages()[, "Package"])]
 if (length(missing_packages) > 0) {
   install.packages(missing_packages)
 }
@@ -52,26 +52,15 @@ client = CastorAPI$new(
 study_name = "ESPRESSO_v3.0"
 df = client$get_study_data_as_dataframe(study_name, tmp_dir)
 
-# Create barchart for nr. liver procedures per month
-df = df %>%
-  filter(
-    lever_pancreas == 0,
-    operatie_lever_operatie_niet_doorgegaan != 1,
-    resectie != 6
-  )
-df <- df %>%
-  mutate(date_operatie = dmy(date_operatie)) %>%
-  mutate(month = floor_date(date_operatie, "month")) %>%
-  group_by(month) %>%
-  summarise(num_procedures = n())
+source("charts/liverprocedures.R")
+source("charts/liverproceduresopenclosed.R")
+source("charts/pancreasprocedures.R")
 
-ggplot(df, aes(x = month, y = num_procedures)) +
-  geom_bar(stat = "identity") +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
-  labs(
-    title = "Number of Liver Procedures per Month",
-    x = "Month",
-    y = "Number of Procedures"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+chart = LiverProceduresPerMonthChart$new(df)
+chart$show()
+
+chart = LiverProceduresPerMonthOpenClosedChart$new(df)
+chart$show()
+
+chart = PancreasProceduresPerMonthChart$new(df)
+chart$show()
