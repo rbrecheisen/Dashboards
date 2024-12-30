@@ -187,7 +187,9 @@ CastorAPI = R6Class(
       df = df %>% select(-all_of(multi_value_columns))
       df = df %>% select(-"NA")
       df = df %>% clean_names()
-      write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
+      if(!is.null(tmp_dir)) {
+        write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
+      }
       return(df)
     }
   )

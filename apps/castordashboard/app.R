@@ -1,4 +1,3 @@
-# Initialize app
 Sys.setenv(CURL_CA_BUNDLE = "/opt/homebrew/etc/ca-certificates/cert.pem")
 Sys.setenv(LD_LIBRARY_PATH = "/opt/homebrew/lib")
 
@@ -40,7 +39,6 @@ config = yaml.load_file("config.yaml")
 source("utils.R")
 source("castorapi.R")
 
-# Initialize Castor API client
 client = CastorAPI$new(
   client_id = utils_load_api_client_id(config$api_client_id_filepath), 
   client_secret = utils_load_api_client_secret(config$api_client_secret_filepath), 
@@ -48,9 +46,7 @@ client = CastorAPI$new(
   token_url = config$api_token_url
 )
 
-# Retrieve Castor study data as a dataframe
-study_name = "ESPRESSO_v3.0"
-df = client$get_study_data_as_dataframe(study_name, tmp_dir)
+df = client$get_study_data_as_dataframe("ESPRESSO_v3.0")
 
 source("charts/liverprocedures.R")
 source("charts/liverproceduresopenclosed.R")
