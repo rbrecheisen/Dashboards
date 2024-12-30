@@ -49,14 +49,17 @@ client = CastorAPI$new(
 df = client$get_study_data_as_dataframe("ESPRESSO_v3.0")
 
 source("charts/liverprocedures.R")
-source("charts/liverproceduresopenclosed.R")
-source("charts/pancreasprocedures.R")
-
 chart = LiverProceduresPerMonthChart$new(df)
 chart$show()
 
+source("charts/liverproceduresopenclosed.R")
 chart = LiverProceduresPerMonthOpenClosedChart$new(df)
 chart$show()
 
+source("charts/livercomplications.R")
+chart = LiverComplicationsPerMonthChart$new(df)
+chart$show()
+
+source("charts/pancreasprocedures.R")
 chart = PancreasProceduresPerMonthChart$new(df)
 chart$show()
