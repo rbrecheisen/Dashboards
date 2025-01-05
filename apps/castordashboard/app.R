@@ -1,8 +1,8 @@
-Sys.setenv(CURL_CA_BUNDLE = "/opt/homebrew/etc/ca-certificates/cert.pem")
-Sys.setenv(LD_LIBRARY_PATH = "/opt/homebrew/lib")
-
-install.packages("curl", type = "source",
-                 configure.args = "--with-curl-config=/opt/homebrew/opt/curl/bin/curl-config")
+# Sys.setenv(CURL_CA_BUNDLE = "/opt/homebrew/etc/ca-certificates/cert.pem")
+# Sys.setenv(LD_LIBRARY_PATH = "/opt/homebrew/lib")
+# 
+# install.packages("curl", type = "source",
+#                  configure.args = "--with-curl-config=/opt/homebrew/opt/curl/bin/curl-config")
 
 if(!requireNamespace("rprojroot", quietly = TRUE)) {
   install.packages("rprojroot")

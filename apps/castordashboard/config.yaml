@@ -1,7 +1,7 @@
 # API credentials
-# api_client_id_filepath: "C:\\Users\\r.brecheisen\\castorclientid.txt"
-api_client_id_filepath: "/Users/ralph/castorclientid.txt"
-# api_client_secret_filepath: "C:\\Users\\r.brecheisen\\castorclientsecret.txt"
-api_client_secret_filepath: "/Users/ralph/castorclientsecret.txt"
+api_client_id_filepath: "C:\\Users\\r.brecheisen\\castorclientid.txt"
+# api_client_id_filepath: "/Users/ralph/castorclientid.txt"
+api_client_secret_filepath: "C:\\Users\\r.brecheisen\\castorclientsecret.txt"
+# api_client_secret_filepath: "/Users/ralph/castorclientsecret.txt"
 api_token_url: "https://data.castoredc.com/oauth/token"
 api_base_url: "https://data.castoredc.com/api"
