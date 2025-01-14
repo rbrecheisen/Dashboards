@@ -1,0 +1,3 @@
+- docker build -t my-shiny-app .
+- docker run -p 3838:3838 my-shiny-app
+- go to: localhost:3838/my_shiny_app
