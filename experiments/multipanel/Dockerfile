@@ -1,7 +1,7 @@
 FROM rocker/shiny:latest
 
 ENV SHINY_PORT=3838 \
-    APP_DIR=/srv/shiny-server/my_shiny_app
+    APP_DIR=/srv/shiny-server/castordashboard
     
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
