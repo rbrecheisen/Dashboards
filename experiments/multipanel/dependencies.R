@@ -16,4 +16,6 @@ if (length(missing_packages) > 0) {
   install.packages(missing_packages)
 }
 
-invisible(lapply(required_packages, library, character.only = TRUE))
+print("Installing missing packages...")
+flush.console()
+invisible(lapply(missing_packages, library, character.only = TRUE))

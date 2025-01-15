@@ -1,0 +1,1 @@
+docker run --rm --name castordashboard -p 3838:3838 -v castordashboard_data:/home/shiny/.castordashboard castordashboard
