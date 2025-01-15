@@ -3,6 +3,7 @@ required_packages <- c(
   "shinyjs",
   "httr",
   "R6",
+  "jsonlite",
   "tidyverse",
   "janitor",
   "lubridate",

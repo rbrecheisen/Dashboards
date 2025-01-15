@@ -155,6 +155,157 @@ CastorAPI = R6Class(
 )
 
 
+Chart = R6Class(
+  
+  "Chart",
+  
+  public = list(
+   
+    df = NULL,
+    tmp_dir = NULL,
+    
+    initialize = function(df, tmp_dir = NULL) {
+      self$tmp_dir = tmp_dir
+      self$df = df
+    },
+    
+    show = function() {
+      message("Not implemented")
+    }
+  )
+)
+
+
+LiverProceduresPerMonthChart = R6Class(
+  
+  "LiverProceduresPerMonthChart",
+  
+  inherit = Chart,
+  
+  public = list(
+    
+    initialize = function(df, tmp_dir = NULL) {
+      super$initialize(df, tmp_dir)
+      self$df = self$df %>%
+        filter(
+          lever_pancreas == 0,
+          operatie_lever_operatie_niet_doorgegaan != 1,
+          resectie != 6
+        )
+      self$df = self$df %>%
+        mutate(date_operatie = dmy(date_operatie)) %>%
+        mutate(month = floor_date(date_operatie, "month")) %>%
+        group_by(month) %>%
+        summarise(num_procedures = n())
+    },
+    
+    show = function() {
+      ggplot(self$df, aes(x = month, y = num_procedures)) +
+        geom_bar(stat = "identity") +
+        scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+        labs(
+          title = "Number of liver procedures per month",
+          x = "Month",
+          y = "Number of procedures"
+        ) +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    }
+  )
+)
+
+
+LiverProceduresPerMonthOpenClosedChart = R6Class(
+  
+  "LiverProceduresPerMonthOpenClosedChart",
+  
+  inherit = Chart,
+  
+  public = list(
+    
+    initialize = function(df, tmp_dir = NULL) {
+      super$initialize(df, tmp_dir)
+      self$df = self$df %>%
+        filter(
+          lever_pancreas == 0,
+          operatie_lever_operatie_niet_doorgegaan != 1,
+          resectie == 6
+        )
+      self$df = self$df %>%
+        mutate(date_operatie = dmy(date_operatie)) %>%
+        mutate(month = floor_date(date_operatie, "month")) %>%
+        group_by(month) %>%
+        summarise(num_procedures = n())
+    },
+    
+    show = function() {
+      ggplot(self$df, aes(x = month, y = num_procedures)) +
+        geom_bar(stat = "identity") +
+        scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+        labs(
+          title = "Number of open/closed liver procedures per month",
+          x = "Month",
+          y = "Number of procedures"
+        ) +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    }
+  )
+)
+
+
+LiverComplicationsPerMonthChart = R6Class(
+  
+  "LiverComplicationsPerMonthChart",
+  
+  inherit = Chart,
+  
+  public = list(
+    
+    initialize = function(df, tmp_dir = NULL) {
+      super$initialize(df, tmp_dir)
+      self$df = self$df %>%
+        mutate(orgaanfalen = factor(
+          replace_na(orgaanfalen, "-1"),
+          levels = c("-1", "0", "1", "2"),
+          labels = c("Missing", "No", "Single-organ", "Multi-organ")
+        )) %>%
+        filter(
+          lever_pancreas == 0,
+          operatie_lever_operatie_niet_doorgegaan != 1,
+          resectie != 6,
+          complicatie_ok == 1,
+          complicaties_waarvoor_reinterventie == 1,
+          orgaanfalen %in% c("Single-organ", "Multi-organ")
+        )
+      self$df = self$df %>%
+        mutate(date_operatie = dmy(date_operatie)) %>%
+        mutate(month = floor_date(date_operatie, "month")) %>%
+        group_by(month, orgaanfalen) %>%
+        summarize(num_procedures = n(), .groups = "drop")
+    },
+    
+    show = function() {
+      ggplot(self$df, aes(x = month, y = num_procedures, fill = orgaanfalen)) +
+        geom_bar(stat = "identity") +
+        labs(
+          title = "Number of liver complications per month",
+          x = "Month",
+          y = "Number of complications",
+          fill = "Orgaanfalen"
+        ) +
+        theme_minimal() +
+        scale_fill_discrete(labels = c(
+          "-1" = "Missing",
+          "0" = "No",
+          "1" = "Single-orgaan",
+          "2" = "Multi-orgaan"
+        ))
+    }
+  )
+)
+
+
 ui = fluidPage(
   useShinyjs(),
   tags$head(
@@ -175,12 +326,17 @@ ui = fluidPage(
         label = "Client secret", 
         value = ""
       ),
+      textInput(
+        inputId = "study_name",
+        label = "Castor study name",
+        value = ""
+      ),
       fluidRow(
         column(
           6, 
           actionButton(
-            inputId = "save_credentials", 
-            label = "Save to file", 
+            inputId = "save_info", 
+            label = "Save", 
             width = "100%"
           )
         ),
@@ -196,14 +352,17 @@ ui = fluidPage(
       br(),
       br(),
       selectInput(
-        inputId = "panel_selector",
+        inputId = "chart",
         label = "Select a chart:",
         choices = c(
-          "Panel 1", 
-          "Panel 2", 
-          "Panel 3"
+          "Liver procedures",
+          "Liver procedures open/closed",
+          "Liver complications",
+          "Pancreas procedures",
+          "Pancreas procedures open/closed",
+          "Pancreas complications"
         ),
-        selected = "Panel 1"
+        selected = "Liver complications per month"
       )
   ),
   mainPanel(
@@ -214,33 +373,52 @@ ui = fluidPage(
 
 server = function(input, output, session) {
   app_dir = file.path(path.expand("~"), ".castordashboard")
+  connected = reactiveVal(FALSE)
+  df = reactiveVal(NULL)
   if(!dir.exists(app_dir)) {
     dir.create(app_dir, showWarnings = FALSE)
   }
-  credentials_file = file.path(app_dir, "credentials.rds")
-  if(file.exists(credentials_file)) {
-    credentials = readRDS(credentials_file)
-    if(!is.null(credentials) && length(credentials) >= 2) {
-      updateTextInput(session, "client_id", value = credentials$client_id)
-      updateTextInput(session, "client_secret", value = credentials$client_secret)
+  study_info_file = file.path(app_dir, "study_info.rds")
+  if(file.exists(study_info_file)) {
+    study_info = readRDS(study_info_file)
+    if(!is.null(study_info) && length(study_info) >= 2) {
+      updateTextInput(session, "client_id", value = study_info$client_id)
+      updateTextInput(session, "client_secret", value = study_info$client_secret)
+      updateTextInput(session, "study_name", value = study_info$study_name)
     }
   }
-  observeEvent(input$save_credentials, {
-    saveRDS(list(client_id = input$client_id, client_secret = input$client_secret), credentials_file)
-    showNotification("Credentials saved successfully!", type = "message")
+  observeEvent(input$save_info, {
+    saveRDS(list(client_id = input$client_id, client_secret = input$client_secret, study_name = input$study_name), study_info_file)
+    showNotification("Study info saved successfully!", type = "message")
   })
   observeEvent(input$connect, {
     api_client = CastorAPI$new(client_id = input$client_id, client_secret = input$client_secret)
+    df(api_client$get_study_data_as_dataframe(input$study_name))
     runjs("$('#connect').addClass('btn-connected')")
     showNotification("Connected!", type = "message")
+    connected(TRUE)
   })
-  output$dynamic_panel <- renderUI({
-    switch(
-      input$panel_selector,
-      "Panel 1" = div(h3("Welcome to Panel 1"), p("This is the content of Panel 1.")),
-      "Panel 2" = div(h3("Welcome to Panel 2"), p("This is the content of Panel 2.")),
-      "Panel 3" = div(h3("Welcome to Panel 3"), p("This is the content of Panel 3."))
-    )
+  output$dynamic_panel = renderUI({
+    plotOutput("selected_chart")
+  })
+  output$selected_chart = renderPlot({
+    req(df())
+    if(input$chart == "Liver procedures") {
+      chart = LiverProceduresPerMonthChart$new(df())
+      chart$show()
+    } else if(input$chart == "Liver procedures open/closed") {
+      chart = LiverProceduresPerMonthOpenClosedChart$new(df())
+      chart$show()
+    } else if(input$chart == "Liver complications") {
+      chart = LiverComplicationsPerMonthChart$new(df())
+      chart$show()
+    } else if(input$chart == "Pancreas procedures") {
+      
+    } else if(input$chart == "Pancreas procedures open/closed") {
+      
+    } else if(input$chart == "Pancreas complications") {
+      
+    }
   })
 }
 
