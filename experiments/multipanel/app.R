@@ -463,7 +463,8 @@ server = function(input, output, session) {
       chart = LiverComplicationsPerMonthChart$new(df())
       chart$show()
     } else if(input$chart == "Pancreas procedures") {
-      
+      chart = PancreasProceduresPerMonthChart$new(df())
+      chart$show()
     } else if(input$chart == "Pancreas procedures open/closed") {
       
     } else if(input$chart == "Pancreas complications") {
