@@ -306,6 +306,56 @@ LiverComplicationsPerMonthChart = R6Class(
 )
 
 
+PancreasProceduresPerMonthChart = R6Class(
+  
+  "PancreasProceduresPerMonthChart",
+  
+  inherit = Chart,
+  
+  public = list(
+    
+    initialize = function(df, tmp_dir = NULL) {
+      super$initialize(df, tmp_dir)
+      self$df = self$df %>%
+        filter(
+          lever_pancreas == 1,
+          operatie_pancreas != 11,
+          operatie_pancreas_techniek != 7
+        )
+      self$df = self$df %>%
+        mutate(date_operatie = dmy(date_operatie)) %>%
+        mutate(month = floor_date(date_operatie, "month")) %>%
+        group_by(month, operatie_pancreas_techniek) %>%
+        summarize(num_procedures = n(), .groups = "drop")
+    },
+    
+    show = function() {
+      ggplot(self$df, aes(x = month, y = num_procedures, fill = operatie_pancreas_techniek)) +
+        geom_bar(stat = "identity") +
+        labs(
+          title = "Number of pancreas procedures per month",
+          x = "Month",
+          y = "Number of procedures",
+          fill = "Surgical Technique"
+        ) +
+        theme_minimal() +
+        scale_fill_discrete(labels = c(
+          "0" = "Open procedure",
+          "1" = "Fully laparoscopic",
+          "2" = "Laparoscopic with conversion",
+          "3" = "Fully robotic",
+          "4" = "Robotic with conversion to laparoscopic",
+          "5" = "Robot with conversion to open",
+          "6" = "Laparoscopic resection with robotic reconstruction",
+          "7" = "Exploration without resection",
+          "8" = "Other",
+          "9" = "Not applicable"
+        ))
+    }
+  )
+)
+
+
 ui = fluidPage(
   useShinyjs(),
   tags$head(
