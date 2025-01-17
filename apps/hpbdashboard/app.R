@@ -1,3 +1,5 @@
+source("dependencies.R")
+
 library(shiny)
 library(shinyjs)
 library(tidyverse)
