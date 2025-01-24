@@ -8,6 +8,7 @@ source("charts/liverproceduresopenclosedchart.R")
 source("charts/livercomplicationschart.R")
 source("charts/pancreasprocedureschart.R")
 source("charts/pancreasproceduresopenclosedchart.R")
+source("charts/pancreascomplicationschart.R")
 source("ui.R")
 
 

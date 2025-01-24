@@ -1,0 +1,7 @@
+---
+title: "todo"
+output: html_document
+---
+
+- Cluster analysis
+- Causal modeling and diagrams
