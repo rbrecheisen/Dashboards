@@ -55,11 +55,12 @@ build_ui = function() {
             "Liver procedures",
             "Liver procedures open/closed",
             "Liver complications",
+            "Liver time MDT to surgery",
             "Pancreas procedures",
             "Pancreas procedures open/closed",
             "Pancreas complications"
           ),
-          selected = "Liver complications per month"
+          selected = "Liver procedures"
         )
       ),
       mainPanel(

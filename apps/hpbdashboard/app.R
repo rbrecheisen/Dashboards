@@ -6,6 +6,7 @@ source("castorclient.R")
 source("charts/liverprocedureschart.R")
 source("charts/liverproceduresopenclosedchart.R")
 source("charts/livercomplicationschart.R")
+source("charts/livertimemdttosurgerychart.R")
 source("charts/pancreasprocedureschart.R")
 source("charts/pancreasproceduresopenclosedchart.R")
 source("charts/pancreascomplicationschart.R")
@@ -47,20 +48,23 @@ server = function(input, output, session) {
   output$selected_chart = renderPlot({
     req(df())
     if(input$chart == "Liver procedures") {
-      chart = LiverProceduresPerMonthChart$new(df())
+      chart = LiverProceduresChart$new(df())
       chart$show()
     } else if(input$chart == "Liver procedures open/closed") {
-      chart = LiverProceduresPerMonthOpenClosedChart$new(df())
+      chart = LiverProceduresOpenClosedChart$new(df())
       chart$show()
     } else if(input$chart == "Liver complications") {
-      chart = LiverComplicationsPerMonthChart$new(df())
+      chart = LiverComplicationsChart$new(df())
+      chart$show()
+    } else if(input$chart == "Liver time MDT to surgery") {
+      chart = LiverTimeMdtToSurgeryChart$new(df())
       chart$show()
     } else if(input$chart == "Pancreas procedures") {
-      chart = PancreasProceduresPerMonthChart$new(df())
+      chart = PancreasProceduresChart$new(df())
       chart$show()
     } else if(input$chart == "Pancreas procedures open/closed") {
-        chart = PancreasProceduresOpenClosedPerMonthChart$new(df())
-        chart$show()
+      chart = PancreasProceduresOpenClosedChart$new(df())
+      chart$show()
     } else if(input$chart == "Pancreas complications") {
 
     }

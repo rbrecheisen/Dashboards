@@ -5,9 +5,9 @@ library(ggplot2)
 source("charts/chart.R")
 
 
-LiverProceduresPerMonthChart = R6Class(
+LiverProceduresChart = R6Class(
   
-  "LiverProceduresPerMonthChart",
+  "LiverProceduresChart",
   
   inherit = Chart,
   

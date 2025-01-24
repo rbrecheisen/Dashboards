@@ -157,3 +157,14 @@ CastorAPI = R6Class(
     }
   )
 )
+
+# client_id_file = file.path(Sys.getenv("USERPROFILE"), "castorclientid.txt")
+# client_id = readLines(file(client_id_file, "r"))
+# client_id
+# client_secret_file = file.path(Sys.getenv("USERPROFILE"), "castorclientsecret.txt")
+# client_secret = readLines(file(client_secret_file, "r"))
+# client_secret
+# client = CastorAPI$new(client_id, client_secret)
+# client
+# study_data = client$get_study_data_as_dataframe(client$get_study_id_by_name("ESPRESSO_v3.0"))
+# study_data

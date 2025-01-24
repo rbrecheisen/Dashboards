@@ -5,9 +5,9 @@ library(ggplot2)
 source("charts/chart.R")
 
 
-PancreasProceduresPerMonthChart = R6Class(
+PancreasProceduresChart = R6Class(
   
-  "PancreasProceduresPerMonthChart",
+  "PancreasProceduresChart",
   
   inherit = Chart,
   

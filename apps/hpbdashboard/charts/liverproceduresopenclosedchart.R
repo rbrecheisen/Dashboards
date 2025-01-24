@@ -5,9 +5,9 @@ library(ggplot2)
 source("charts/chart.R")
 
 
-LiverProceduresPerMonthOpenClosedChart = R6Class(
+LiverProceduresOpenClosedChart = R6Class(
   
-  "LiverProceduresPerMonthOpenClosedChart",
+  "LiverProceduresOpenClosedChart",
   
   inherit = Chart,
   
