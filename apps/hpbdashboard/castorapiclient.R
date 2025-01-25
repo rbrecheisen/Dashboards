@@ -274,6 +274,7 @@ CastorApiClient = R6Class("CastorApiClient",
       optiongroups <- self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
       data <- self$load_csv_data(self$get_study_data_as_csv(study_id, "data", tmp_dir))
 
+      # Merge field definitions and records
       data <- data %>%
         left_join(
           field_defs, by = "Field ID") %>%
@@ -284,7 +285,9 @@ CastorApiClient = R6Class("CastorApiClient",
         pivot_wider(
           id_cols = `Record ID`, names_from = `Field Variable Name`, values_from = `Value`)
 
+      # One-hot encode checkbox columns
       multi_value_columns <- field_defs$`Field Variable Name`[field_defs$`Field Type` == "checkbox"]
+      new_column_names <- c() # one-hot encoded columns
       
       for(column in multi_value_columns) {
         optiongroup_id <- field_defs$`Field Option Group`[field_defs$`Field Variable Name` == column]
@@ -292,17 +295,24 @@ CastorApiClient = R6Class("CastorApiClient",
         option_names <- optiongroups$`Option Name`[optiongroups$`Option Group Id` == optiongroup_id]
         
         for(i in 1:length(option_values)) {
-          df[[paste0(column, "_", option_names[i])]] <- sapply(df[[column]], function(x) {
+          new_column_name <- paste0(column, "_", option_names[i])
+          df[[new_column_name]] <- sapply(df[[column]], function(x) {
             option_values[i] %in% unlist(strsplit(x, ";"))
           }) * 1
+          new_column_names <- c(new_column_names, new_column_name)
         }
+      }
+      
+      df <- self$set_dataframe_data_types(df, field_defs)
+      
+      # Convert one-hot encoded columns to integer type
+      for(column in new_column_names) {
+        df[[column]] <- as.integer(df[[column]])
       }
       
       df <- df %>% select(-all_of(multi_value_columns))
       df <- df %>% select(-"NA")
-      df <- df %>% clean_names()
-      
-      df <- self$set_dataframe_data_types(df, field_defs)
+      df <- df %>% clean_names() # convert column names to lowercase and underscores
       
       if(!is.null(tmp_dir)) {
         write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
@@ -319,4 +329,5 @@ CastorApiClient = R6Class("CastorApiClient",
 # study_name <- "ESPRESSO_v3.0"
 # study_id <- client$get_study_id_by_name(study_name)
 # field_defs <- client$load_csv_data(client$get_study_data_as_csv(study_id, "structure"))
-# study_data <- client$get_study_data_as_dataframe(study_name)
+# df <- client$get_study_data_as_dataframe(study_name)
+# glimpse(df)

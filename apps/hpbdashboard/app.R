@@ -55,28 +55,31 @@ server = function(input, output, session) {
   
   output$selected_chart = renderPlot({
     req(df())
-  
     if(input$chart == "Liver procedures") {
-      chart = LiverProceduresChart$new(df())
-      chart$show()
-    } else if(input$chart == "Liver procedures open/closed") {
-      chart = LiverProceduresOpenClosedChart$new(df())
-      chart$show()
-    } else if(input$chart == "Liver complications") {
-      chart = LiverComplicationsChart$new(df())
-      chart$show()
-    } else if(input$chart == "Liver time MDT to surgery") {
-      chart = LiverTimeMdtToSurgeryChart$new(df())
-      chart$show()
-    } else if(input$chart == "Pancreas procedures") {
-      chart = PancreasProceduresChart$new(df())
-      chart$show()
-    } else if(input$chart == "Pancreas procedures open/closed") {
-      chart = PancreasProceduresOpenClosedChart$new(df())
-      chart$show()
-    } else if(input$chart == "Pancreas complications") {
-
+      glimpse(df())
     }
+  
+    # if(input$chart == "Liver procedures") {
+    #   chart = LiverProceduresChart$new(df())
+    #   chart$show()
+    # } else if(input$chart == "Liver procedures open/closed") {
+    #   chart = LiverProceduresOpenClosedChart$new(df())
+    #   chart$show()
+    # } else if(input$chart == "Liver complications") {
+    #   chart = LiverComplicationsChart$new(df())
+    #   chart$show()
+    # } else if(input$chart == "Liver time MDT to surgery") {
+    #   chart = LiverTimeMdtToSurgeryChart$new(df())
+    #   chart$show()
+    # } else if(input$chart == "Pancreas procedures") {
+    #   chart = PancreasProceduresChart$new(df())
+    #   chart$show()
+    # } else if(input$chart == "Pancreas procedures open/closed") {
+    #   chart = PancreasProceduresOpenClosedChart$new(df())
+    #   chart$show()
+    # } else if(input$chart == "Pancreas complications") {
+    # 
+    # }
   })
 }
 
