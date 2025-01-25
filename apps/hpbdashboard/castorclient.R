@@ -6,9 +6,7 @@ library(janitor)
 library(lubridate)
 
 
-CastorAPI = R6Class(
-  
-  "CastorAPI",
+CastorApi = R6Class("CastorApi",
   
   public = list(
     
@@ -113,73 +111,73 @@ CastorAPI = R6Class(
     },
     
     load_csv_data = function(csv_data) {
-      # ERROR!! This does not work for some reason
       dict_data = read_delim(csv_data, delim = ";", col_names = TRUE, show_col_types = FALSE, name_repair = "minimal")
       return(dict_data)
     },
     
     get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {
-      
       df = NULL
+      study_id <- self$get_study_id_by_name(study_name)
       
-      study_id = self$get_study_id_by_name(study_name)
-      
-      field_defs_as_csv = self$get_study_data_as_csv(study_id, "structure", tmp_dir)
-      field_defs = self$load_csv_data(field_defs_as_csv) # <-- ERROR!
-      
-      # optiongroups_as_csv = self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir)
-      # optiongroups = self$load_csv_data(optiongroups_as_csv)
-      # 
-      # data_as_csv = self$get_study_data_as_csv(study_id, "data", tmp_dir)
-      # data = self$load_csv_data(data_as_csv)
-      # 
-      # data = data %>%
-      #   left_join(
-      #     field_defs, by = "Field ID") %>%
-      #   select(
-      #     `Record ID`, `Field Variable Name`, `Value`)
-      # 
-      # df = data %>%
-      #   pivot_wider(
-      #     id_cols = `Record ID`, names_from = `Field Variable Name`, values_from = `Value`)
-      # 
-      # # One-hot encoding
-      # multi_value_columns = field_defs$`Field Variable Name`[field_defs$`Field Type` == "checkbox"]
-      # for(column in multi_value_columns) {
-      #   optiongroup_id = field_defs$`Field Option Group`[field_defs$`Field Variable Name` == column]
-      #   option_values = optiongroups$`Option Value`[optiongroups$`Option Group Id` == optiongroup_id]
-      #   option_names = optiongroups$`Option Name`[optiongroups$`Option Group Id` == optiongroup_id]
-      #   for(i in 1:length(option_values)) {
-      #     df[[paste0(column, "_", option_names[i])]] = sapply(df[[column]], function(x) {
-      #       option_values[i] %in% unlist(strsplit(x, ";"))
-      #     }) * 1
-      #   }
-      # }
-      # 
-      # df = df %>% select(-all_of(multi_value_columns))
-      # df = df %>% select(-"NA")
-      # df = df %>% clean_names()
-      # 
-      # if(!is.null(tmp_dir)) {
-      #   write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
-      # }
+      field_defs_as_csv <- self$get_study_data_as_csv(study_id, "structure", tmp_dir)
+      field_defs <- self$load_csv_data(field_defs_as_csv)
+      optiongroups_as_csv = self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir)
+      optiongroups = self$load_csv_data(optiongroups_as_csv)
+      data_as_csv = self$get_study_data_as_csv(study_id, "data", tmp_dir)
+      data = self$load_csv_data(data_as_csv)
+
+      data = data %>%
+        left_join(
+          field_defs, by = "Field ID") %>%
+        select(
+          `Record ID`, `Field Variable Name`, `Value`)
+
+      df = data %>%
+        pivot_wider(
+          id_cols = `Record ID`, names_from = `Field Variable Name`, values_from = `Value`)
+
+      # One-hot encoding
+      multi_value_columns = field_defs$`Field Variable Name`[field_defs$`Field Type` == "checkbox"]
+      for(column in multi_value_columns) {
+        optiongroup_id = field_defs$`Field Option Group`[field_defs$`Field Variable Name` == column]
+        option_values = optiongroups$`Option Value`[optiongroups$`Option Group Id` == optiongroup_id]
+        option_names = optiongroups$`Option Name`[optiongroups$`Option Group Id` == optiongroup_id]
+        for(i in 1:length(option_values)) {
+          df[[paste0(column, "_", option_names[i])]] = sapply(df[[column]], function(x) {
+            option_values[i] %in% unlist(strsplit(x, ";"))
+          }) * 1
+        }
+      }
+
+      df = df %>% select(-all_of(multi_value_columns))
+      df = df %>% select(-"NA")
+      df = df %>% clean_names()
+
+      if(!is.null(tmp_dir)) {
+        write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
+      }
 
       return(df)
     }
   )
 )
 
-client_id_file_path = file.path(Sys.getenv("USERPROFILE"), "castorclientid.txt")
-client_id_file = file(client_id_file_path, "r")
-client_id = readLines(client_id_file)
-close(client_id_file)
+# client_id_file_path = file.path(Sys.getenv("USERPROFILE"), "castorclientid.txt")
+# client_id_file = file(client_id_file_path, "r")
+# client_id = readLines(client_id_file)
+# close(client_id_file)
+# 
+# client_secret_file_path = file.path(Sys.getenv("USERPROFILE"), "castorclientsecret.txt")
+# client_secret_file = file(client_secret_file_path, "r")
+# client_secret = readLines(client_secret_file)
+# close(client_secret_file)
 
-client_secret_file_path = file.path(Sys.getenv("USERPROFILE"), "castorclientsecret.txt")
-client_secret_file = file(client_secret_file_path, "r")
-client_secret = readLines(client_secret_file)
-close(client_secret_file)
+source("credentials.R")
 
-client = CastorAPI$new(client_id, client_secret)
-study_id = client$get_study_id_by_name("ESPRESSO_v3.0")
-study_data = client$get_study_data_as_dataframe(study_id)
+credentials <- CastorApiCredentials$new()
+client <- CastorApi$new(credentials$load_client_id(), credentials$load_client_secret())
+
+study_name <- "ESPRESSO_v3.0"
+
+study_data <- client$get_study_data_as_dataframe(study_name)
 study_data
