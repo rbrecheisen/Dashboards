@@ -42,7 +42,7 @@ server = function(input, output, session) {
   })
   
   observeEvent(input$connect, {
-    api_client = CastorApi$new(client_id = input$client_id, client_secret = input$client_secret)
+    api_client = CastorApiClient$new(client_id = input$client_id, client_secret = input$client_secret)
     df(api_client$get_study_data_as_dataframe(input$study_name))
     runjs("$('#connect').addClass('btn-connected')")
     showNotification("Connected!", type = "message")

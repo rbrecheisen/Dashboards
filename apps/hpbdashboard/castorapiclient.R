@@ -6,22 +6,47 @@ library(janitor)
 library(lubridate)
 
 
-CastorApi = R6Class("CastorApi",
+CastorApiClient = R6Class("CastorApiClient",
   
   public = list(
     api_token_url = "https://data.castoredc.com/oauth/token",
     api_base_url = "https://data.castoredc.com/api",
     token = NULL,
     studies = NULL,
-    nr_retries = 1,
-    retry_waiting_time = 1,
+    nr_retries = -1,
+    retry_waiting_time = -1,
     
-    initialize = function(client_id, client_secret, nr_retries = 5, retry_waiting_time = 5) {
+    #' Title: Initializes Castor API client
+    #' 
+    #' @description 
+    #' Initializes the Castor API client with a client ID and secret.
+    #' 
+    #' @param client_id API client ID
+    #' @param client_secret API client secret
+    #' @param nr_retries Number of time to retry API endpoint calls
+    #' @param retry_waiting_time Time in seconds before trying to call API endpoint again
+    #' 
+    #' @examples
+    #' # Example usage:
+    #' client <- CastorApiClient$new("1234", "ABCD", 5, 5)
+    #' 
+    #' @export
+    initialize = function(client_id, client_secret, nr_retries = 5, retry_waiting_time = 1) {
       self$token <- self$connect(client_id, client_secret, self$api_token_url)
       self$nr_retries <- nr_retries
       self$retry_waiting_time <- retry_waiting_time
     },
     
+    #' Title: Connects to API
+    #' 
+    #' @description 
+    #' Makes connection with API using provided client ID and secret. 
+    #' 
+    #' @param client_id API client ID
+    #' @param client_secret API client secret
+    #' @param token_url URL endpoint for retrieving API access token
+    #' 
+    #' @export
     connect = function(client_id, client_secret, token_url) {
       response <- POST(
         url = token_url,
@@ -46,6 +71,13 @@ CastorApi = R6Class("CastorApi",
       return(token)
     },
     
+    #' Title: Retrieves all studies (permitted for user)
+    #' 
+    #' @description 
+    #' Retrieves all Castor studies for which the user, associated with the client ID 
+    #' and secret, has access.
+    #' 
+    #' @export
     get_studies = function() {
       if(!is.null(self$studies)) {
         return(self$studies)
@@ -70,6 +102,14 @@ CastorApi = R6Class("CastorApi",
       return(self$studies)
     },
     
+    #' Title: Gets study name for given study ID
+    #' 
+    #' @description 
+    #' Gets study name for given study ID
+    #' 
+    #' @param study_id Study ID
+    #'
+    #' @export
     get_study_name_by_id = function(study_id) {
       studies <- self$get_studies()
       
@@ -82,6 +122,14 @@ CastorApi = R6Class("CastorApi",
       return(NULL)
     },
     
+    #' Title: Get study ID for given study name
+    #' 
+    #' @description]
+    #' Gets study ID for given study name
+    #' 
+    #' @param study_name Study name
+    #'
+    #' @export
     get_study_id_by_name = function(study_name) {
       studies <- self$get_studies()
       
@@ -94,6 +142,19 @@ CastorApi = R6Class("CastorApi",
       return(NULL)
     },
     
+    #' Title: Retrieves study data of given type
+    #' 
+    #' @description 
+    #' Retrieves study data depending on the type of data requested. Possibilities
+    #' are field definitions, option groups or records.
+    #' 
+    #' @param study_id Study ID
+    #' @param data_type Type of study data requested. Must be "structure", "optiongroups"
+    #' or "data", where data are the records
+    #' @param tmp_dir Optional temporary directory where to save the retrieved data (in
+    #' CSV format)
+    #' 
+    #' @export
     get_study_data_as_csv = function(study_id, data_type, tmp_dir = NULL) {
       stopifnot(data_type %in% c('data', 'optiongroups', 'structure'))
       
@@ -130,26 +191,51 @@ CastorApi = R6Class("CastorApi",
       return(csv_data)
     },
     
+    #' Title: Loads string-encoded CSV data as a data frame
+    #' 
+    #' @description 
+    #' Loads string-encoded CSV data (retrieved with get_study_data_as_csv()) and returns
+    #' the data as a data frame
+    #' 
+    #' @param csv_data String-encoded CSV data
+    #' 
+    #' @export
     load_csv_data = function(csv_data) {
       df <- read_delim(csv_data, delim = ";", col_names = TRUE, show_col_types = FALSE, name_repair = "minimal")
       return(df)
     },
     
-    is_binary_column = function(column) {
-      return(all(na.omit(column) %in% c(0, 1)))
-    },
-    
+    #' Title: Gets field type for a given field variable name
+    #' 
+    #' @description 
+    #' Gets field type for given field variable name
+    #' 
+    #' @param field_name Field variable name
+    #' @param field_defs Field definitions (as retrieved by get_study_data_as_csv())
+    #' 
+    #' @export
     get_field_type = function(field_name, field_defs) {
-      field_defs %>%
-        filter(`Field Variable Name` == field_name) %>%
-        pull(`Field Type`) %>%
-        first()
+      return(
+        field_defs %>%
+          filter(`Field Variable Name` == field_name) %>%
+          pull(`Field Type`) %>%
+          first()
+      )
     },
     
+    #' Title: Update column data types
+    #' 
+    #' @description 
+    #' Updates column data types in given data frame using the given field definitions
+    #' 
+    #' @param df Data frame to be updated
+    #' @param field_defs Field definitions (as retrieved by get_study_data_as_csv())
+    #' 
+    #' @export
     set_dataframe_data_types = function(df, field_defs) {
       for(field_name in names(df)) {
         field_type <- self$get_field_type(field_name, field_defs)
-
+        
         if(!is.na(field_type)) {
           if (field_type == "number") {
             df[[field_name]] <- suppressWarnings(as.numeric(df[[field_name]]))
@@ -165,7 +251,23 @@ CastorApi = R6Class("CastorApi",
       
       return(df)
     },
-
+    
+    #' Title: Get study data as data frame
+    #' 
+    #' @description 
+    #' Gets study data as data frame by retrieving field definitions, option groups and record data
+    #' as string-encoded CSV data and merging these together to form a data frame.
+    #' 
+    #' @param study_name Study name
+    #' @param tmp_dir Optional temporary directory where to save the retrieved data (in
+    #' CSV format)
+    #' 
+    #' @examples 
+    #' # Example usage:
+    #' client <- CastorApiClient$new("1234", "ABCD")
+    #' client$get_study_data_as_dataframe("My_Study")
+    #' 
+    #' @export
     get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {
       study_id <- self$get_study_id_by_name(study_name)
       field_defs <- self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
@@ -182,9 +284,6 @@ CastorApi = R6Class("CastorApi",
         pivot_wider(
           id_cols = `Record ID`, names_from = `Field Variable Name`, values_from = `Value`)
 
-      # TODO: This causes an error when generating a chart!!!
-      # df <- self$set_dataframe_data_types(df, field_defs)
-      
       multi_value_columns <- field_defs$`Field Variable Name`[field_defs$`Field Type` == "checkbox"]
       
       for(column in multi_value_columns) {
@@ -203,6 +302,8 @@ CastorApi = R6Class("CastorApi",
       df <- df %>% select(-"NA")
       df <- df %>% clean_names()
       
+      df <- self$set_dataframe_data_types(df, field_defs)
+      
       if(!is.null(tmp_dir)) {
         write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
       }
@@ -213,13 +314,9 @@ CastorApi = R6Class("CastorApi",
 )
 
 # source("credentials.R")
-# 
 # credentials <- CastorApiCredentials$new()
-# client <- CastorApi$new(credentials$load_client_id(), credentials$load_client_secret())
-# 
+# client <- CastorApiClient$new(credentials$load_client_id(), credentials$load_client_secret())
 # study_name <- "ESPRESSO_v3.0"
 # study_id <- client$get_study_id_by_name(study_name)
-# 
 # field_defs <- client$load_csv_data(client$get_study_data_as_csv(study_id, "structure"))
-# 
 # study_data <- client$get_study_data_as_dataframe(study_name)
