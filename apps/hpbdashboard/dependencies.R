@@ -7,7 +7,6 @@ required_packages <- c(
   "tidyverse",
   "janitor",
   "lubridate",
-  "shiny",
   "ggplot2"
 )
 
