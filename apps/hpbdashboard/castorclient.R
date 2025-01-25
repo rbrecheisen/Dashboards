@@ -9,7 +9,6 @@ library(lubridate)
 CastorApi = R6Class("CastorApi",
   
   public = list(
-    
     api_token_url = "https://data.castoredc.com/oauth/token",
     api_base_url = "https://data.castoredc.com/api",
     token = NULL,
@@ -18,13 +17,13 @@ CastorApi = R6Class("CastorApi",
     retry_waiting_time = 1,
     
     initialize = function(client_id, client_secret, nr_retries = 5, retry_waiting_time = 5) {
-      self$token = self$connect(client_id, client_secret, self$api_token_url)
-      self$nr_retries = nr_retries
-      self$retry_waiting_time = retry_waiting_time
+      self$token <- self$connect(client_id, client_secret, self$api_token_url)
+      self$nr_retries <- nr_retries
+      self$retry_waiting_time <- retry_waiting_time
     },
     
     connect = function(client_id, client_secret, token_url) {
-      response = POST(
+      response <- POST(
         url = token_url,
         encode = "form",
         body = list(
@@ -33,13 +32,17 @@ CastorApi = R6Class("CastorApi",
           client_secret = client_secret
         )
       )
+      
       if(http_status(response)$category != "Success") {
         stop("Failed to authenticate with Castor API: ", content(response, "text", encoding = "UTF-8"))
       }
-      token = content(response, "parsed")$access_token
+      
+      token <- content(response, "parsed")$access_token
+      
       if(is.null(token)) {
         stop("No access token received")
       }
+      
       return(token)
     },
     
@@ -47,112 +50,159 @@ CastorApi = R6Class("CastorApi",
       if(!is.null(self$studies)) {
         return(self$studies)
       }
-      response = GET(
+      
+      response <- GET(
         url = paste0(self$api_base_url, "/study"),
         add_headers(Authorization = paste("Bearer", self$token))
       )
+      
       if(http_status(response)$category != "Success") {
         stop("API request failed", content(response, "text"))
       }
-      response_content = content(response, "text", encoding = "UTF-8")
-      json_content = fromJSON(response_content)
-      self$studies = data.frame(
+      response_content <- content(response, "text", encoding = "UTF-8")
+      json_content <- fromJSON(response_content)
+      
+      self$studies <- data.frame(
         study_id = json_content$`_embedded`$study$study_id,
         study_name = json_content$`_embedded`$study$name
       )
+      
       return(self$studies)
     },
     
     get_study_name_by_id = function(study_id) {
-      studies = self$get_studies()
+      studies <- self$get_studies()
+      
       for(i in 1:nrow(studies)) {
         if(studies$study_id[i] == study_id) {
           return(studies$study_name[i])
         }
       }
+      
       return(NULL)
     },
     
     get_study_id_by_name = function(study_name) {
-      studies = self$get_studies()
+      studies <- self$get_studies()
+      
       for(i in 1:nrow(studies)) {
         if(studies$study_name[i] == study_name) {
           return(studies$study_id[i])
         }
       }
+      
       return(NULL)
     },
     
     get_study_data_as_csv = function(study_id, data_type, tmp_dir = NULL) {
       stopifnot(data_type %in% c('data', 'optiongroups', 'structure'))
-      url = paste0(self$api_base_url, "/study/", study_id, "/export/", data_type)
-      count = 0; status_code = 0; response = NULL
+      
+      url <- paste0(self$api_base_url, "/study/", study_id, "/export/", data_type)
+      
+      count <- 0; 
+      status_code <- 0; 
+      response <- NULL
+      
       while(status_code != 200 && count <= self$nr_retries) {
-        response = GET(url, add_headers(Authorization = paste("Bearer", self$token)))
-        status_code = response$status_code
+        response <- GET(url, add_headers(Authorization = paste("Bearer", self$token)))
+        status_code <- response$status_code
+        
         if(status_code == 200) {
           break
         } else if(count == self$nr_retries) {
           message(sprintf("Could not retrieve %s for study ID %s (status: %d)", data_type, study_id, status_code))
           return(NULL)
         }
-        count = count + 1
+        count <- count + 1
         Sys.sleep(self$retry_waiting_time)
       }
-      csv_data = content(response, as = "text", encoding = "UTF-8")
+      
+      csv_data <- content(response, as = "text", encoding = "UTF-8")
+      
       if(!is.null(tmp_dir)) {
-        study_name = self$get_study_name_by_id(study_id)
+        study_name <- self$get_study_name_by_id(study_id)
         dir.create(file.path(tmp_dir, study_name), recursive = TRUE, showWarnings = FALSE)
-        file_path = file.path(tmp_dir, study_name, paste0(data_type, ".csv"))
+        file_path <- file.path(tmp_dir, study_name, paste0(data_type, ".csv"))
         writeLines(content, file_path, useBytes = TRUE)
         message(sprintf("Data written to %s", file_path))
       }
+      
       return(csv_data)
     },
     
     load_csv_data = function(csv_data) {
-      dict_data = read_delim(csv_data, delim = ";", col_names = TRUE, show_col_types = FALSE, name_repair = "minimal")
-      return(dict_data)
+      df <- read_delim(csv_data, delim = ";", col_names = TRUE, show_col_types = FALSE, name_repair = "minimal")
+      return(df)
     },
     
-    get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {
-      df = NULL
-      study_id <- self$get_study_id_by_name(study_name)
-      
-      field_defs_as_csv <- self$get_study_data_as_csv(study_id, "structure", tmp_dir)
-      field_defs <- self$load_csv_data(field_defs_as_csv)
-      optiongroups_as_csv = self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir)
-      optiongroups = self$load_csv_data(optiongroups_as_csv)
-      data_as_csv = self$get_study_data_as_csv(study_id, "data", tmp_dir)
-      data = self$load_csv_data(data_as_csv)
+    is_binary_column = function(column) {
+      return(all(na.omit(column) %in% c(0, 1)))
+    },
+    
+    get_field_type = function(field_name, field_defs) {
+      field_defs %>%
+        filter(`Field Variable Name` == field_name) %>%
+        pull(`Field Type`) %>%
+        first()
+    },
+    
+    set_dataframe_data_types = function(df, field_defs) {
+      for(field_name in names(df)) {
+        field_type <- self$get_field_type(field_name, field_defs)
 
-      data = data %>%
+        if(!is.na(field_type)) {
+          if (field_type == "number") {
+            df[[field_name]] <- suppressWarnings(as.numeric(df[[field_name]]))
+          } else if (field_type %in% c("radio", "dropdown")) {
+            df[[field_name]] <- suppressWarnings(as.integer(df[[field_name]]))
+          } else if (field_type %in% c("date", "datetime")) {
+            df[[field_name]] <- suppressWarnings(as.Date(df[[field_name]], format = "%d-%m-%Y"))
+          } else if (field_type == "year") {
+            df[[field_name]] <- suppressWarnings(as.Date(paste0(df[[field_name]], "-01-01"), format = "%Y-%m-%d"))
+          }
+        }
+      }
+      
+      return(df)
+    },
+
+    get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {
+      study_id <- self$get_study_id_by_name(study_name)
+      field_defs <- self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
+      optiongroups <- self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
+      data <- self$load_csv_data(self$get_study_data_as_csv(study_id, "data", tmp_dir))
+
+      data <- data %>%
         left_join(
           field_defs, by = "Field ID") %>%
         select(
           `Record ID`, `Field Variable Name`, `Value`)
 
-      df = data %>%
+      df <- data %>%
         pivot_wider(
           id_cols = `Record ID`, names_from = `Field Variable Name`, values_from = `Value`)
 
-      # One-hot encoding
-      multi_value_columns = field_defs$`Field Variable Name`[field_defs$`Field Type` == "checkbox"]
+      # TODO: This causes an error when generating a chart!!!
+      # df <- self$set_dataframe_data_types(df, field_defs)
+      
+      multi_value_columns <- field_defs$`Field Variable Name`[field_defs$`Field Type` == "checkbox"]
+      
       for(column in multi_value_columns) {
-        optiongroup_id = field_defs$`Field Option Group`[field_defs$`Field Variable Name` == column]
-        option_values = optiongroups$`Option Value`[optiongroups$`Option Group Id` == optiongroup_id]
-        option_names = optiongroups$`Option Name`[optiongroups$`Option Group Id` == optiongroup_id]
+        optiongroup_id <- field_defs$`Field Option Group`[field_defs$`Field Variable Name` == column]
+        option_values <- optiongroups$`Option Value`[optiongroups$`Option Group Id` == optiongroup_id]
+        option_names <- optiongroups$`Option Name`[optiongroups$`Option Group Id` == optiongroup_id]
+        
         for(i in 1:length(option_values)) {
-          df[[paste0(column, "_", option_names[i])]] = sapply(df[[column]], function(x) {
+          df[[paste0(column, "_", option_names[i])]] <- sapply(df[[column]], function(x) {
             option_values[i] %in% unlist(strsplit(x, ";"))
           }) * 1
         }
       }
-
-      df = df %>% select(-all_of(multi_value_columns))
-      df = df %>% select(-"NA")
-      df = df %>% clean_names()
-
+      
+      df <- df %>% select(-all_of(multi_value_columns))
+      df <- df %>% select(-"NA")
+      df <- df %>% clean_names()
+      
       if(!is.null(tmp_dir)) {
         write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
       }
@@ -162,22 +212,14 @@ CastorApi = R6Class("CastorApi",
   )
 )
 
-# client_id_file_path = file.path(Sys.getenv("USERPROFILE"), "castorclientid.txt")
-# client_id_file = file(client_id_file_path, "r")
-# client_id = readLines(client_id_file)
-# close(client_id_file)
+# source("credentials.R")
 # 
-# client_secret_file_path = file.path(Sys.getenv("USERPROFILE"), "castorclientsecret.txt")
-# client_secret_file = file(client_secret_file_path, "r")
-# client_secret = readLines(client_secret_file)
-# close(client_secret_file)
-
-source("credentials.R")
-
-credentials <- CastorApiCredentials$new()
-client <- CastorApi$new(credentials$load_client_id(), credentials$load_client_secret())
-
-study_name <- "ESPRESSO_v3.0"
-
-study_data <- client$get_study_data_as_dataframe(study_name)
-study_data
+# credentials <- CastorApiCredentials$new()
+# client <- CastorApi$new(credentials$load_client_id(), credentials$load_client_secret())
+# 
+# study_name <- "ESPRESSO_v3.0"
+# study_id <- client$get_study_id_by_name(study_name)
+# 
+# field_defs <- client$load_csv_data(client$get_study_data_as_csv(study_id, "structure"))
+# 
+# study_data <- client$get_study_data_as_dataframe(study_name)
