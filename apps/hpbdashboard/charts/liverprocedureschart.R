@@ -22,7 +22,7 @@ LiverProceduresChart = R6Class(
           resectie != 6
         )
       self$df = self$df %>%
-        mutate(date_operatie = dmy(date_operatie)) %>%
+        mutate(date_operatie = ymd(date_operatie)) %>%
         mutate(month = floor_date(date_operatie, "month")) %>%
         group_by(month) %>%
         summarise(num_procedures = n())
@@ -43,3 +43,14 @@ LiverProceduresChart = R6Class(
     }
   )
 )
+
+# load("study_data.Rdata")
+# study_data <- study_data %>%
+#   filter(
+#     lever_pancreas == 0,
+#     operatie_lever_operatie_niet_doorgegaan != 1,
+#     resectie != 6
+#   )
+# nrow(study_data)
+# do <- study_data$date_operatie
+# do <- ymd(do)

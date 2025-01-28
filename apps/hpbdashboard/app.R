@@ -56,6 +56,8 @@ server = function(input, output, session) {
   output$selected_chart = renderPlot({
     req(df())
     if(input$chart == "Liver procedures") {
+      study_data <- df()
+      save(study_data, file = "study_data.Rdata")
       na_counts <- sapply(df(), function(x) { sum(is.na(x))})
       na_df <- data.frame(Variable_Name = names(na_counts), Nr_NA = na_counts)
       write.csv(na_df, "na_counts.csv", row.names = FALSE)
