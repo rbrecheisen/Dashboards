@@ -56,30 +56,35 @@ server = function(input, output, session) {
   output$selected_chart = renderPlot({
     req(df())
     if(input$chart == "Liver procedures") {
-      glimpse(df())
+      na_counts <- sapply(df(), function(x) { sum(is.na(x))})
+      na_df <- data.frame(Variable_Name = names(na_counts), Nr_NA = na_counts)
+      write.csv(na_df, "na_counts.csv", row.names = FALSE)
+      chart = LiverProceduresChart$new(df())
+      chart$show()
+    } 
+    else if(input$chart == "Liver procedures open/closed") {
+      chart = LiverProceduresOpenClosedChart$new(df())
+      chart$show()
     }
-  
-    # if(input$chart == "Liver procedures") {
-    #   chart = LiverProceduresChart$new(df())
-    #   chart$show()
-    # } else if(input$chart == "Liver procedures open/closed") {
-    #   chart = LiverProceduresOpenClosedChart$new(df())
-    #   chart$show()
-    # } else if(input$chart == "Liver complications") {
-    #   chart = LiverComplicationsChart$new(df())
-    #   chart$show()
-    # } else if(input$chart == "Liver time MDT to surgery") {
-    #   chart = LiverTimeMdtToSurgeryChart$new(df())
-    #   chart$show()
-    # } else if(input$chart == "Pancreas procedures") {
-    #   chart = PancreasProceduresChart$new(df())
-    #   chart$show()
-    # } else if(input$chart == "Pancreas procedures open/closed") {
-    #   chart = PancreasProceduresOpenClosedChart$new(df())
-    #   chart$show()
-    # } else if(input$chart == "Pancreas complications") {
-    # 
-    # }
+    else if(input$chart == "Liver complications") {
+      chart = LiverComplicationsChart$new(df())
+      chart$show()
+    } 
+    else if(input$chart == "Liver time MDT to surgery") {
+      chart = LiverTimeMdtToSurgeryChart$new(df())
+      chart$show()
+    } 
+    else if(input$chart == "Pancreas procedures") {
+      chart = PancreasProceduresChart$new(df())
+      chart$show()
+    } 
+    else if(input$chart == "Pancreas procedures open/closed") {
+      chart = PancreasProceduresOpenClosedChart$new(df())
+      chart$show()
+    } 
+    else if(input$chart == "Pancreas complications") {
+
+    }
   })
 }
 
