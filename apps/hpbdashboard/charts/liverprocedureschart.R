@@ -20,8 +20,7 @@ LiverProceduresChart = R6Class(
           lever_pancreas == 0,
           operatie_lever_operatie_niet_doorgegaan != 1,
           resectie != 6
-        )
-      self$df = self$df %>%
+        ) %>%
         mutate(date_operatie = ymd(date_operatie)) %>%
         mutate(month = floor_date(date_operatie, "month")) %>%
         group_by(month) %>%
@@ -33,7 +32,7 @@ LiverProceduresChart = R6Class(
         geom_bar(stat = "identity") +
         scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
         labs(
-          title = "Number of liver procedures per month",
+          title = "Number of liver procedures",
           x = "Month",
           y = "Number of procedures"
         ) +

@@ -5,9 +5,9 @@ library(ggplot2)
 source("charts/chart.R")
 
 
-LiverTimeMdtToSurgeryChart = R6Class(
+PancreasTimeMdtToSurgeryChart = R6Class(
   
-  "LiverTimeMdtToSurgeryChart",
+  "PancreasTimeMdtToSurgeryChart",
   
   inherit = Chart,
   
@@ -17,9 +17,9 @@ LiverTimeMdtToSurgeryChart = R6Class(
       super$initialize(df, tmp_dir)
       self$df = self$df %>%
         filter(
-          lever_pancreas == 0,
-          operatie_lever_operatie_niet_doorgegaan != 1,
-          resectie != 6
+          lever_pancreas == 1,
+          operatie_pancreas != 11,
+          operatie_pancreas_techniek != 7
         ) %>%
         mutate(
           date_mdo = ymd(date_mdo),
@@ -43,7 +43,7 @@ LiverTimeMdtToSurgeryChart = R6Class(
         ) +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-        scale_y_continuous(breaks = seq(0, 200, by = 10))
+        scale_y_continuous(breaks = seq(0, 250, by = 10))
     }
   )
 )
@@ -51,9 +51,9 @@ LiverTimeMdtToSurgeryChart = R6Class(
 # load("study_data.Rdata")
 # study_data <- study_data %>%
 #   filter(
-#     lever_pancreas == 0,
-#     operatie_lever_operatie_niet_doorgegaan != 1,
-#     resectie != 6
+#     lever_pancreas == 1,
+#     operatie_pancreas != 11,
+#     operatie_pancreas_techniek != 7
 #   ) %>%
 #   mutate(
 #     date_mdo = ymd(date_mdo),

@@ -20,9 +20,8 @@ PancreasProceduresOpenClosedChart = R6Class(
           lever_pancreas == 1,
           operatie_pancreas != 11,
           operatie_pancreas_techniek == 7
-        )
-      self$df = self$df %>%
-        mutate(date_operatie = dmy(date_operatie)) %>%
+        ) %>%
+        mutate(date_operatie = ymd(date_operatie)) %>%
         mutate(month = floor_date(date_operatie, "month")) %>%
         group_by(month) %>%
         summarize(num_procedures = n(), .groups = "drop")
@@ -32,7 +31,7 @@ PancreasProceduresOpenClosedChart = R6Class(
       ggplot(self$df, aes(x = month, y = num_procedures)) +
         geom_bar(stat = "identity") +
         labs(
-          title = "Number of open/closed pancreas procedures per month",
+          title = "Number of open/closed pancreas procedures",
           x = "Month",
           y = "Number of procedures"
         ) +

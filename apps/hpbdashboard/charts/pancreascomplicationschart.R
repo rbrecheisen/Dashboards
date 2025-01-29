@@ -15,73 +15,69 @@ PancreasComplicationsChart = R6Class(
     
     initialize = function(df, tmp_dir = NULL) {
       super$initialize(df, tmp_dir)
-      self$df = self$df %>%
+      self$df <- self$df %>%
+        mutate(orgaanfalen = factor(
+          replace_na(orgaanfalen, -1),
+          levels = c(-1, 0, 1, 2),
+          labels = c("Missing", "No", "Single-organ", "Multi-organ")
+        )) %>%
         filter(
           lever_pancreas == 1,
           operatie_pancreas != 11,
           operatie_pancreas_techniek < 7,
           complicatie_ok == 1,
           complicaties_waarvoor_reinterventie == 1,
-          if_else(is.na(orgaanfalen), -1, orgaanfalen) %in% c(1, 2)
-        )
-      self$df = self$df %>%
-        mutate(date_operatie = dmy(date_operatie)) %>%
-        mutate(month = floor_date(date_operatie, "month")) %>%
+          orgaanfalen %in% c("Single-organ", "Multi-organ")
+          # if_else(is.na(orgaanfalen), -1, orgaanfalen) %in% c(1, 2)
+        ) %>%
+        mutate(
+          date_operatie = ymd(date_operatie),
+          month = floor_date(date_operatie, "month")
+        ) %>%
         group_by(month, orgaanfalen) %>%
         summarize(num_complications = n(), .groups = "drop")
-      self$df <- self$df %>%
-        mutate(
-          orgaanfalen_label = case_when(
-            orgaanfalen == 1 ~ "Single-organ failure",
-            orgaanfalen == 2 ~ "Multi-organ failure",
-            TRUE ~ "Unknown"
-          )
-        )
     },
     
     show = function() {
-      ggplot(self$df, aes(x = month, y = num_complications, fill = orgaanfalen_label)) +
-        geom_bar(stat = "identity", width = 0.5) +
-        scale_fill_manual(
-          values = c("Single-organ failure" = "#718dbf", 
-                     "Multi-organ failure" = "#e84d60")
-        ) +
+      ggplot(self$df, aes(x = month, y = num_complications, fill = orgaanfalen)) +
+        geom_bar(stat = "identity") +
         labs(
-          x = "Month",
-          y = "Number of Complications",
-          fill = "Orgaanfalen"
+          title = "Number of pancreas complications",
+          x     = "Month",
+          y     = "Number of complications",
+          fill  = "Organ failure"
         ) +
         theme_minimal() +
-        theme(
-          axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "right",
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.border = element_blank()
-        ) +
-        scale_y_continuous(expand = c(0, 0))
-      # ggplot(self$df, aes(x = month, y = num_procedures, fill = operatie_pancreas_techniek)) +
-      #   geom_bar(stat = "identity") +
-      #   labs(
-      #     title = "Number of pancreas procedures per month",
-      #     x = "Month",
-      #     y = "Number of procedures",
-      #     fill = "Surgical technique"
-      #   ) +
-      #   theme_minimal() +
-      #   scale_fill_discrete(labels = c(
-      #     "0" = "Open procedure",
-      #     "1" = "Fully laparoscopic",
-      #     "2" = "Laparoscopic with conversion",
-      #     "3" = "Fully robotic",
-      #     "4" = "Robotic with conversion to laparoscopic",
-      #     "5" = "Robot with conversion to open",
-      #     "6" = "Laparoscopic resection with robotic reconstruction",
-      #     "7" = "Exploration without resection",
-      #     "8" = "Other",
-      #     "9" = "Not applicable"
-      #   )) +
-      #   scale_y_continuous(breaks = seq(0, 50, by = 1))
+        scale_fill_discrete(labels = c(
+          "-1" = "Missing",
+          "0"  = "No",
+          "1"  = "Single-organ",
+          "2"  = "Multi-organ"
+        )) +
+        scale_y_continuous(breaks = seq(0, 50, by = 1))
     }
   )
 )
+
+# load("study_data.Rdata")
+# study_data <- study_data %>%
+#   filter(
+#     lever_pancreas == 1,
+#     operatie_pancreas != 11,
+#     operatie_pancreas_techniek < 7,
+#     complicatie_ok == 1,
+#     complicaties_waarvoor_reinterventie == 1,
+#     if_else(is.na(orgaanfalen), -1, orgaanfalen) %in% c(1, 2)
+#   ) %>%
+#   mutate(
+#     date_operatie = dmy(date_operatie),
+#     month = floor_date(date_operatie, "month"),
+#     orgaanfalen_label = case_when(
+#       orgaanfalen == 1 ~ "Single-organ failure",
+#       orgaanfalen == 2 ~ "Multi-organ failure",
+#       TRUE ~ "Unknown"
+#     )
+#   ) %>%
+#   group_by(month, orgaanfalen) %>%
+#   summarize(num_complications = n(), .groups = "drop")
+# study_data$orgaanfalen
