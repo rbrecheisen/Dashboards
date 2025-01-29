@@ -10,6 +10,7 @@ source("charts/livertimemdttosurgerychart.R")
 source("charts/pancreasprocedureschart.R")
 source("charts/pancreasproceduresopenclosedchart.R")
 source("charts/pancreascomplicationschart.R")
+source("charts/pancreastimemdttosurgerychart.R")
 source("ui.R")
 
 
@@ -72,7 +73,7 @@ server = function(input, output, session) {
       chart = LiverComplicationsChart$new(df())
       chart$show()
     } 
-    else if(input$chart == "Liver time MDT to surgery") {
+    else if(input$chart == "Liver number of days MDT to surgery") {
       chart = LiverTimeMdtToSurgeryChart$new(df())
       chart$show()
     } 
@@ -85,7 +86,12 @@ server = function(input, output, session) {
       chart$show()
     } 
     else if(input$chart == "Pancreas complications") {
-
+      chart = PancreasComplicationsChart$new(df())
+      chart$show()
+    }
+    else if(input$chart == "Pancreas number of days MDT to surgery") {
+      chart = PancreasTimeMdtToSurgeryChart$new(df())
+      chart$show()
     }
   })
 }

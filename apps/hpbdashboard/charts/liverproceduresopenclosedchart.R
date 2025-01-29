@@ -1,5 +1,6 @@
 library(R6)
 library(dplyr)
+library(lubridate)
 library(ggplot2)
 
 source("charts/chart.R")
@@ -20,9 +21,8 @@ LiverProceduresOpenClosedChart = R6Class(
           lever_pancreas == 0,
           operatie_lever_operatie_niet_doorgegaan != 1,
           resectie == 6
-        )
-      self$df = self$df %>%
-        mutate(date_operatie = dmy(date_operatie)) %>%
+        ) %>%
+        mutate(date_operatie = ymd(date_operatie)) %>%
         mutate(month = floor_date(date_operatie, "month")) %>%
         group_by(month) %>%
         summarise(num_procedures = n())
@@ -33,7 +33,7 @@ LiverProceduresOpenClosedChart = R6Class(
         geom_bar(stat = "identity") +
         scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
         labs(
-          title = "Number of open/closed liver procedures per month",
+          title = "Number of open/closed liver procedures",
           x = "Month",
           y = "Number of procedures"
         ) +
@@ -43,3 +43,14 @@ LiverProceduresOpenClosedChart = R6Class(
     }
   )
 )
+
+# load("study_data.Rdata")
+# study_data <- study_data %>%
+#   filter(
+#     lever_pancreas == 0,
+#     operatie_lever_operatie_niet_doorgegaan != 1,
+#     resectie == 6
+#   )
+# nrow(study_data)
+# do <- study_data$date_operatie
+# do <- ymd(do)
