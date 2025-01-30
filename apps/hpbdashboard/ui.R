@@ -61,7 +61,7 @@ build_ui = function() {
             "Pancreas complications",
             "Pancreas number of days MDT to surgery"
           ),
-          selected = "Pancreas procedures"
+          selected = "Liver procedures"
         )
       ),
       mainPanel(
