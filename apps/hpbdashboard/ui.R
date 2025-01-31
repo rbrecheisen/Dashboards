@@ -62,7 +62,9 @@ build_ui = function() {
             "PANCREAS: Number of complications",
             "PANCREAS: Number of days MDT to surgery",
             "PANCREAS: Number of days surgery to discharge",
-            "PANCREAS: Number of days OPEN surgery to discharge"
+            "PANCREAS: Number of days OPEN surgery to discharge",
+            "PANCREAS: Number of days ROBOT surgery to discharge",
+            "PANCREAS: Number of days LAPAROSCOPIC surgery to discharge"
           ),
           selected = "Liver procedures"
         )

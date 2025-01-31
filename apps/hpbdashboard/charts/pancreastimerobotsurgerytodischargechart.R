@@ -5,9 +5,9 @@ library(ggplot2)
 source("charts/chart.R")
 
 
-PancreasTimeOpenSurgeryToDischargeChart = R6Class(
+PancreasTimeRobotSurgeryToDischargeChart = R6Class(
   
-  "PancreasTimeOpenSurgeryToDischargeChart",
+  "PancreasTimeRobotSurgeryToDischargeChart",
   
   inherit = Chart,
   
@@ -38,7 +38,7 @@ PancreasTimeOpenSurgeryToDischargeChart = R6Class(
         filter(
           lever_pancreas == 1,
           operatie_pancreas != 11,
-          operatie_pancreas_techniek == 0 # Open
+          operatie_pancreas_techniek == 3 # Robot
         ) %>%
         mutate(
           date_operatie = ymd(date_operatie),
@@ -58,7 +58,7 @@ PancreasTimeOpenSurgeryToDischargeChart = R6Class(
         geom_bar(stat = "identity") +
         scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
         labs(
-          title = "PANCREAS: Average number of days OPEN surgery to discharge",
+          title = "PANCREAS: Average number of days ROBOT surgery to discharge",
           x = "Month",
           y = "Average number of days",
           fill = "Type of surgery"

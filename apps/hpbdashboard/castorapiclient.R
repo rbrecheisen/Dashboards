@@ -29,10 +29,6 @@ CastorApiClient = R6Class("CastorApiClient",
     #' @param nr_retries Number of time to retry API endpoint calls
     #' @param retry_waiting_time Time in seconds before trying to call API endpoint again
     #' 
-    #' @examples
-    #' # Example usage:
-    #' client <- CastorApiClient$new("1234", "ABCD", 5, 5)
-    #' 
     #' @export
     initialize = function(client_id, client_secret, nr_retries = 5, retry_waiting_time = 1) {
       self$token <- self$connect(client_id, client_secret, self$api_token_url)
@@ -264,11 +260,6 @@ CastorApiClient = R6Class("CastorApiClient",
     #' @param study_name Study name
     #' @param tmp_dir Optional temporary directory where to save the retrieved data (in
     #' CSV format)
-    #' 
-    #' @examples 
-    #' # Example usage:
-    #' client <- CastorApiClient$new("1234", "ABCD")
-    #' client$get_study_data_as_dataframe("My_Study")
     #' 
     #' @export
     get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {

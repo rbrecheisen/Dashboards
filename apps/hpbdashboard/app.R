@@ -14,6 +14,8 @@ source("charts/pancreascomplicationschart.R")
 source("charts/pancreastimemdttosurgerychart.R")
 source("charts/pancreastimesurgerytodischargechart.R")
 source("charts/pancreastimeopensurgerytodischargechart.R")
+source("charts/pancreastimerobotsurgerytodischargechart.R")
+source("charts/pancreastimelaparoscopicsurgerytodischargechart.R")
 source("ui.R")
 
 
