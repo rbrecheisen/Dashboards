@@ -323,8 +323,9 @@ CastorApiClient = R6Class("CastorApiClient",
     #' @param file_path Target file path where to save the .Rdata file (default $HOME)
     #' 
     #' @export
-    save_data = function(file_path = file.path(path.expand("~"), "study_data.csv")) {
-      write.csv(self$data, file_path, row.names = FALSE)
+    save_data = function(file_path = file.path(path.expand("~"), "data.Rdata")) {
+      data <- self$data
+      save(data, file = file_path)
       print(paste0("Saving study data to ", file_path))
     },
     
@@ -337,8 +338,9 @@ CastorApiClient = R6Class("CastorApiClient",
     #' @param file_path Target file path where to save the .Rdata file (default $HOME)
     #' 
     #' @export
-    save_field_definitions = function(file_path = file.path(path.expand("~"), "study_field_defs.csv")) {
-      write.csv(self$field_defs, file_path, row.names = FALSE)
+    save_field_definitions = function(file_path = file.path(path.expand("~"), "field_defs.Rdata")) {
+      field_defs <- self$field_defs
+      save(field_defs, file = file_path)
       print(paste0("Saving study field definitions to ", file_path))
     }, 
     
@@ -350,10 +352,11 @@ CastorApiClient = R6Class("CastorApiClient",
     #' @param file_path Target file path where to save the .Rdata file (default $HOME)
     #' 
     #' @export
-    save_na_counts = function(file_path = file.path(path.expand("~"), "study_na_counts.csv")) {
+    save_na_counts = function(file_path = file.path(path.expand("~"), "na_counts.Rdata")) {
       na_counts <- sapply(self$data, function(x) { sum(is.na(x))})
-      na_df <- data.frame(Variable_Name = names(na_counts), Nr_NA = na_counts)
-      write.csv(na_df, file_path, row.names = FALSE)
+      na_counts <- data.frame(Variable_Name = names(na_counts), Nr_NA = na_counts)
+      save(na_counts, file = file_path)
+      print(paste0("Saving NA counts to ", file_path))
     }
   )
 )
