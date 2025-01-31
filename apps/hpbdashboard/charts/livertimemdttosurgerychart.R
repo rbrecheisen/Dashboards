@@ -37,7 +37,7 @@ LiverTimeMdtToSurgeryChart = R6Class(
         geom_bar(stat = "identity") +
         scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
         labs(
-          title = "Average number of days MDT to surgery",
+          title = "LIVER: Average number of days MDT to surgery",
           x = "Month",
           y = "Average number of days"
         ) +

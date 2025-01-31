@@ -15,6 +15,9 @@ CastorApiClient = R6Class("CastorApiClient",
     studies = NULL,
     nr_retries = -1,
     retry_waiting_time = -1,
+    data = NULL,
+    field_defs = NULL,
+    optiongroups = NULL,
     
     #' Title: Initializes Castor API client
     #' 
@@ -270,55 +273,96 @@ CastorApiClient = R6Class("CastorApiClient",
     #' @export
     get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {
       study_id <- self$get_study_id_by_name(study_name)
-      field_defs <- self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
-      optiongroups <- self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
-      data <- self$load_csv_data(self$get_study_data_as_csv(study_id, "data", tmp_dir))
+      self$field_defs <- self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
+      self$optiongroups <- self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
+      self$data <- self$load_csv_data(self$get_study_data_as_csv(study_id, "data", tmp_dir))
 
       # Merge field definitions and records
-      data <- data %>%
+      self$data <- self$data %>%
         left_join(
-          field_defs, by = "Field ID") %>%
+          self$field_defs, by = "Field ID") %>%
         select(
           `Record ID`, `Field Variable Name`, `Value`)
 
-      df <- data %>%
+      self$data <- self$data %>%
         pivot_wider(
           id_cols = `Record ID`, names_from = `Field Variable Name`, values_from = `Value`)
 
       # One-hot encode checkbox columns
-      multi_value_columns <- field_defs$`Field Variable Name`[field_defs$`Field Type` == "checkbox"]
+      multi_value_columns <- self$field_defs$`Field Variable Name`[self$field_defs$`Field Type` == "checkbox"]
       new_column_names <- c() # one-hot encoded columns
       
       for(column in multi_value_columns) {
-        optiongroup_id <- field_defs$`Field Option Group`[field_defs$`Field Variable Name` == column]
-        option_values <- optiongroups$`Option Value`[optiongroups$`Option Group Id` == optiongroup_id]
-        option_names <- optiongroups$`Option Name`[optiongroups$`Option Group Id` == optiongroup_id]
+        optiongroup_id <- self$field_defs$`Field Option Group`[self$field_defs$`Field Variable Name` == column]
+        option_values <- self$optiongroups$`Option Value`[self$optiongroups$`Option Group Id` == optiongroup_id]
+        option_names <- self$optiongroups$`Option Name`[self$optiongroups$`Option Group Id` == optiongroup_id]
         
         for(i in 1:length(option_values)) {
           new_column_name <- paste0(column, "_", option_names[i])
-          df[[new_column_name]] <- sapply(df[[column]], function(x) {
+          self$data[[new_column_name]] <- sapply(self$data[[column]], function(x) {
             option_values[i] %in% unlist(strsplit(x, ";"))
           }) * 1
           new_column_names <- c(new_column_names, new_column_name)
         }
       }
       
-      df <- self$set_dataframe_data_types(df, field_defs)
+      self$data <- self$set_dataframe_data_types(self$data, self$field_defs)
       
       # Convert one-hot encoded columns to integer type
       for(column in new_column_names) {
-        df[[column]] <- as.integer(df[[column]])
+        self$data[[column]] <- as.integer(self$data[[column]])
       }
       
-      df <- df %>% select(-all_of(multi_value_columns))
-      df <- df %>% select(-"NA")
-      df <- df %>% clean_names() # convert column names to lowercase and underscores
+      self$data <- self$data %>% select(-all_of(multi_value_columns))
+      self$data <- self$data %>% select(-"NA")
+      self$data <- self$data %>% clean_names() # convert column names to lowercase and underscores
       
       if(!is.null(tmp_dir)) {
-        write.csv2(df, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
+        write.csv2(self$data, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
       }
 
-      return(df)
+      return(self$data)
+    },
+    
+    #' Title: Save study data to file
+    #' 
+    #' @description 
+    #' Saves study data dataframe to file
+    #' 
+    #' @param file_path Target file path where to save the .Rdata file (default $HOME)
+    #' 
+    #' @export
+    save_data = function(file_path = file.path(path.expand("~"), "study_data.csv")) {
+      write.csv(self$data, file_path, row.names = FALSE)
+      print(paste0("Saving study data to ", file_path))
+    },
+    
+    #' Title: Save field definitions to file
+    #' 
+    #' @description 
+    #' Saves field definitions (including option groups) to file. Table is in long format
+    #' with columns "Field Variable Name", "Field Type", "Option Group Name", "Option Name", "Option Value"
+    #' 
+    #' @param file_path Target file path where to save the .Rdata file (default $HOME)
+    #' 
+    #' @export
+    save_field_definitions = function(file_path = file.path(path.expand("~"), "study_field_defs.csv")) {
+      write.csv(self$field_defs, file_path, row.names = FALSE)
+      print(paste0("Saving study field definitions to ", file_path))
+    }, 
+    
+    #' Title: Save NA counts per column
+    #' 
+    #' @description 
+    #' Saves NA counts per column to file
+    #' 
+    #' @param file_path Target file path where to save the .Rdata file (default $HOME)
+    #' 
+    #' @export
+    save_na_counts = function(file_path = file.path(path.expand("~"), "study_na_counts.csv")) {
+      na_counts <- sapply(self$data, function(x) { sum(is.na(x))})
+      na_df <- data.frame(Variable_Name = names(na_counts), Nr_NA = na_counts)
+      write.csv(na_df, file_path, row.names = FALSE)
     }
   )
 )

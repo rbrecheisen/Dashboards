@@ -32,7 +32,7 @@ LiverProceduresChart = R6Class(
         geom_bar(stat = "identity") +
         scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
         labs(
-          title = "Number of liver procedures",
+          title = "LIVER: Number of procedures",
           x = "Month",
           y = "Number of procedures"
         ) +

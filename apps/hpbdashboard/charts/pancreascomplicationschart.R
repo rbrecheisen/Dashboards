@@ -42,7 +42,7 @@ PancreasComplicationsChart = R6Class(
       ggplot(self$df, aes(x = month, y = num_complications, fill = orgaanfalen)) +
         geom_bar(stat = "identity") +
         labs(
-          title = "Number of pancreas complications",
+          title = "PANCREAS: Number of complications",
           x     = "Month",
           y     = "Number of complications",
           fill  = "Organ failure"

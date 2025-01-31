@@ -52,14 +52,17 @@ build_ui = function() {
           inputId = "chart",
           label = "Select a chart:",
           choices = c(
-            "Liver procedures",
-            "Liver procedures open/closed",
-            "Liver complications",
-            "Liver number of days MDT to surgery",
-            "Pancreas procedures",
-            "Pancreas procedures open/closed",
-            "Pancreas complications",
-            "Pancreas number of days MDT to surgery"
+            "LIVER: Number of procedures",
+            "LIVER: Number of open/closed procedures",
+            "LIVER: Number of omplications",
+            "LIVER: Number of days MDT to surgery",
+            "LIVER: Number of days surgery to discharge",
+            "PANCREAS: Number of procedures",
+            "PANCREAS: Number of open/closed procedures",
+            "PANCREAS: Number of complications",
+            "PANCREAS: Number of days MDT to surgery",
+            "PANCREAS: Number of days surgery to discharge",
+            "PANCREAS: Number of days OPEN surgery to discharge"
           ),
           selected = "Liver procedures"
         )

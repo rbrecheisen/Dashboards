@@ -7,10 +7,13 @@ source("charts/liverprocedureschart.R")
 source("charts/liverproceduresopenclosedchart.R")
 source("charts/livercomplicationschart.R")
 source("charts/livertimemdttosurgerychart.R")
+source("charts/livertimesurgerytodischargechart.R")
 source("charts/pancreasprocedureschart.R")
 source("charts/pancreasproceduresopenclosedchart.R")
 source("charts/pancreascomplicationschart.R")
 source("charts/pancreastimemdttosurgerychart.R")
+source("charts/pancreastimesurgerytodischargechart.R")
+source("charts/pancreastimeopensurgerytodischargechart.R")
 source("ui.R")
 
 
@@ -45,6 +48,8 @@ server = function(input, output, session) {
   observeEvent(input$connect, {
     api_client = CastorApiClient$new(client_id = input$client_id, client_secret = input$client_secret)
     df(api_client$get_study_data_as_dataframe(input$study_name))
+    api_client$save_data()
+    api_client$save_field_definitions()
     runjs("$('#connect').addClass('btn-connected')")
     showNotification("Connected!", type = "message")
     connected(TRUE)
@@ -56,41 +61,56 @@ server = function(input, output, session) {
   
   output$selected_chart = renderPlot({
     req(df())
-    if(input$chart == "Liver procedures") {
-      study_data <- df()
-      save(study_data, file = "study_data.Rdata")
-      na_counts <- sapply(df(), function(x) { sum(is.na(x))})
-      na_df <- data.frame(Variable_Name = names(na_counts), Nr_NA = na_counts)
-      write.csv(na_df, "na_counts.csv", row.names = FALSE)
+    if(input$chart == "LIVER: Number of procedures") {
       chart = LiverProceduresChart$new(df())
       chart$show()
     } 
-    else if(input$chart == "Liver procedures open/closed") {
+    else if(input$chart == "LIVER: Number of open/closed procedures") {
       chart = LiverProceduresOpenClosedChart$new(df())
       chart$show()
     }
-    else if(input$chart == "Liver complications") {
+    else if(input$chart == "LIVER: Number of complications") {
       chart = LiverComplicationsChart$new(df())
       chart$show()
     } 
-    else if(input$chart == "Liver number of days MDT to surgery") {
+    else if(input$chart == "LIVER: Number of days MDT to surgery") {
       chart = LiverTimeMdtToSurgeryChart$new(df())
       chart$show()
     } 
-    else if(input$chart == "Pancreas procedures") {
+    else if(input$chart == "LIVER: Number of days surgery to discharge") {
+      chart = LiverTimeSurgeryToDischargeChart$new(df())
+      chart$show()
+    } 
+    else if(input$chart == "PANCREAS: Number of procedures") {
       chart = PancreasProceduresChart$new(df())
       chart$show()
     } 
-    else if(input$chart == "Pancreas procedures open/closed") {
+    else if(input$chart == "PANCREAS: Number of open/closed procedures") {
       chart = PancreasProceduresOpenClosedChart$new(df())
       chart$show()
     } 
-    else if(input$chart == "Pancreas complications") {
+    else if(input$chart == "PANCREAS: Number of omplications") {
       chart = PancreasComplicationsChart$new(df())
       chart$show()
     }
-    else if(input$chart == "Pancreas number of days MDT to surgery") {
+    else if(input$chart == "PANCREAS: Number of days MDT to surgery") {
       chart = PancreasTimeMdtToSurgeryChart$new(df())
+      chart$show()
+    }
+    else if(input$chart == "PANCREAS: Number of days surgery to discharge") {
+      chart = PancreasTimeSurgeryToDischargeChart$new(df())
+      chart$show()
+    }
+    else if(input$chart == "PANCREAS: Number of days OPEN surgery to discharge") {
+      chart = PancreasTimeOpenSurgeryToDischargeChart$new(df())
+      chart$show()
+    }
+    else if(input$chart == "PANCREAS: Number of days ROBOT surgery to discharge") {
+      chart = PancreasTimeRobotSurgeryToDischargeChart$new(df())
+      chart$show()
+    }
+    else if(input$chart == "PANCREAS: Number of days LAPAROSCOPIC surgery to discharge") {
+      chart = PancreasTimeLaparoscopicSurgeryToDischargeChart$new(df())
       chart$show()
     }
   })

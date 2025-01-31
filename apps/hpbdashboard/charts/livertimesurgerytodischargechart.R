@@ -5,9 +5,9 @@ library(ggplot2)
 source("charts/chart.R")
 
 
-PancreasTimeMdtToSurgeryChart = R6Class(
+LiverTimeSurgeryToDischargeChart = R6Class(
   
-  "PancreasTimeMdtToSurgeryChart",
+  "LiverTimeSurgeryToDischargeChart",
   
   inherit = Chart,
   
@@ -17,33 +17,33 @@ PancreasTimeMdtToSurgeryChart = R6Class(
       super$initialize(df, tmp_dir)
       self$df = self$df %>%
         filter(
-          lever_pancreas == 1,
-          operatie_pancreas != 11,
-          operatie_pancreas_techniek != 7
+          lever_pancreas == 0,
+          operatie_lever_operatie_niet_doorgegaan != 1,
+          resectie != 6
         ) %>%
         mutate(
-          date_mdo = ymd(date_mdo),
           date_operatie = ymd(date_operatie),
-          mdo_to_surgery = as.numeric(date_operatie - date_mdo),
-          month = floor_date(date_operatie, "month")
+          datum_ontslag = ymd(datum_ontslag),
+          surgery_to_discharge = as.numeric(datum_ontslag - date_operatie),
+          month = floor_date(datum_ontslag, "month")
         )
     },
     
     show = function() {
       average_times <- self$df %>%
         group_by(month) %>%
-        summarize(average_times = mean(mdo_to_surgery, na.rm = TRUE), .groups = "drop")
+        summarize(average_times = mean(surgery_to_discharge, na.rm = TRUE), .groups = "drop")
       ggplot(average_times, aes(x = month, y = average_times)) +
         geom_bar(stat = "identity") +
         scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
         labs(
-          title = "PANCREAS: Average number of days MDT to surgery",
+          title = "LIVER: Average number of days surgery to discharge",
           x = "Month",
           y = "Average number of days"
         ) +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-        scale_y_continuous(breaks = seq(0, 250, by = 10))
+        scale_y_continuous(breaks = seq(0, 200, by = 10))
     }
   )
 )
@@ -51,9 +51,9 @@ PancreasTimeMdtToSurgeryChart = R6Class(
 # load("study_data.Rdata")
 # study_data <- study_data %>%
 #   filter(
-#     lever_pancreas == 1,
-#     operatie_pancreas != 11,
-#     operatie_pancreas_techniek != 7
+#     lever_pancreas == 0,
+#     operatie_lever_operatie_niet_doorgegaan != 1,
+#     resectie != 6
 #   ) %>%
 #   mutate(
 #     date_mdo = ymd(date_mdo),

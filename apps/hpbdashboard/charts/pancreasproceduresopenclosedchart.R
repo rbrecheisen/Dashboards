@@ -31,7 +31,7 @@ PancreasProceduresOpenClosedChart = R6Class(
       ggplot(self$df, aes(x = month, y = num_procedures)) +
         geom_bar(stat = "identity") +
         labs(
-          title = "Number of open/closed pancreas procedures",
+          title = "PANCREAS: Number of open/closed procedures",
           x = "Month",
           y = "Number of procedures"
         ) +

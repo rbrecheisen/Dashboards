@@ -5,9 +5,9 @@ library(ggplot2)
 source("charts/chart.R")
 
 
-PancreasProceduresChart = R6Class(
+PancreasTimeSurgeryToDischargeChart = R6Class(
   
-  "PancreasProceduresChart",
+  "PancreasTimeSurgeryToDischargeChart",
   
   inherit = Chart,
   
@@ -38,22 +38,31 @@ PancreasProceduresChart = R6Class(
           operatie_pancreas != 11,
           operatie_pancreas_techniek != 7
         ) %>%
-        mutate(date_operatie = ymd(date_operatie)) %>%
-        mutate(month = floor_date(date_operatie, "month")) %>%
-        group_by(month, operatie_pancreas_techniek) %>%
-        summarize(num_procedures = n(), .groups = "drop")
+        mutate(
+          date_operatie = ymd(date_operatie),
+          datum_ontslag = ymd(datum_ontslag),
+          surgery_to_discharge = as.numeric(datum_ontslag - date_operatie),
+          month = floor_date(datum_ontslag, "month")
+        )
     },
     
     show = function() {
-      ggplot(self$df, aes(x = month, y = num_procedures, fill = operatie_pancreas_techniek)) +
+      
+      average_times <- self$df %>%
+        group_by(month, operatie_pancreas_techniek) %>%
+        summarize(average_times = mean(surgery_to_discharge, na.rm = TRUE), .groups = "drop")
+      
+      ggplot(average_times, aes(x = month, y = average_times, fill = operatie_pancreas_techniek)) +
         geom_bar(stat = "identity") +
+        scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
         labs(
-          title = "PANCREAS: Number of procedures",
+          title = "PANCREAS: Average number of days surgery to discharge",
           x = "Month",
-          y = "Number of procedures",
+          y = "Average number of days",
           fill = "Surgical technique"
         ) +
         theme_minimal() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
         scale_fill_discrete(labels = c(
           "-1" = "Missing",
           "0" = "Open procedure",
@@ -67,7 +76,7 @@ PancreasProceduresChart = R6Class(
           "8" = "Other",
           "9" = "Not applicable"
         )) +
-        scale_y_continuous(breaks = seq(0, 50, by = 1))
+        scale_y_continuous(breaks = seq(0, 250, by = 10))
     }
   )
 )
@@ -80,9 +89,9 @@ PancreasProceduresChart = R6Class(
 #     operatie_pancreas_techniek != 7
 #   ) %>%
 #   mutate(
+#     date_mdo = ymd(date_mdo),
 #     date_operatie = ymd(date_operatie),
+#     mdo_to_surgery = as.numeric(date_operatie - date_mdo),
 #     month = floor_date(date_operatie, "month")
-#   ) %>%
-#   group_by(month, operatie_pancreas_techniek) %>%
-#   summarize(num_procedures = n(), .groups = "drop")
-# study_data$operatie_pancreas_techniek
+#   )
+# study_data$mdo_to_surgery

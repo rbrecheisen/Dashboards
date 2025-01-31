@@ -41,7 +41,7 @@ LiverComplicationsChart = R6Class(
       ggplot(self$df, aes(x = month, y = num_complications, fill = orgaanfalen)) +
         geom_bar(stat = "identity") +
         labs(
-          title = "Number of liver complications",
+          title = "LIVER: Number of complications",
           x     = "Month",
           y     = "Number of complications",
           fill  = "Organ failure"
