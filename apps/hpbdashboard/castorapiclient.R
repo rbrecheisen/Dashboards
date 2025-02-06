@@ -262,7 +262,7 @@ CastorApiClient = R6Class("CastorApiClient",
     #' CSV format)
     #' 
     #' @export
-    get_study_data_as_dataframe = function(study_name, tmp_dir = NULL) {
+    get_study_data = function(study_name, tmp_dir = NULL) {
       study_id <- self$get_study_id_by_name(study_name)
       self$field_defs <- self$load_csv_data(self$get_study_data_as_csv(study_id, "structure", tmp_dir))
       self$optiongroups <- self$load_csv_data(self$get_study_data_as_csv(study_id, "optiongroups", tmp_dir))
@@ -312,7 +312,7 @@ CastorApiClient = R6Class("CastorApiClient",
         write.csv2(self$data, file = sprintf("%s/%s/df.csv", tmp_dir, study_name), row.names = FALSE)
       }
 
-      return(self$data)
+      return(list(records = self$data, field_defs = self$field_defs, optiongroups = self$optiongroups))
     },
     
     #' Title: Save study data to file

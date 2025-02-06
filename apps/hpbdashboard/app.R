@@ -48,8 +48,9 @@ server = function(input, output, session) {
   })
   
   observeEvent(input$connect, {
-    api_client = CastorApiClient$new(client_id = input$client_id, client_secret = input$client_secret)
-    df(api_client$get_study_data_as_dataframe(input$study_name))
+    api_client <- CastorApiClient$new(client_id = input$client_id, client_secret = input$client_secret)
+    study_data <- api_client$get_study_data(input$study_name)
+    df(study_data$records)
     api_client$save_data()
     api_client$save_field_definitions()
     api_client$save_na_counts()
