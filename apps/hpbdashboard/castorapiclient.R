@@ -58,16 +58,27 @@ CastorApiClient = R6Class("CastorApiClient",
       )
       
       if(http_status(response)$category != "Success") {
-        stop("Failed to authenticate with Castor API: ", content(response, "text", encoding = "UTF-8"))
+        print(paste0("Failed to authenticate with Castor API: ", content(response, "text", encoding = "UTF-8")))
+        return(NULL)
       }
       
       token <- content(response, "parsed")$access_token
       
       if(is.null(token)) {
-        stop("No access token received")
+        print("No access token received")
       }
       
       return(token)
+    },
+    
+    #' Title: Checks if connection was successfull
+    #' 
+    #' @description
+    #' Checks API token is not NULL and returns TRUE/FALSE
+    #' 
+    #' @export
+    is_connected = function() {
+      return(!is.null(self$token))
     },
     
     #' Title: Retrieves all studies (permitted for user)
@@ -323,10 +334,10 @@ CastorApiClient = R6Class("CastorApiClient",
     #' @param file_path Target file path where to save the .Rdata file (default $HOME)
     #' 
     #' @export
-    save_data = function(file_path = file.path(path.expand("~"), "data.Rdata")) {
-      data <- self$data
-      save(data, file = file_path)
-      print(paste0("Saving study data to ", file_path))
+    save_records = function(file_path = file.path(path.expand("~"), "records.Rdata")) {
+      records <- self$data
+      save(records, file = file_path)
+      print(paste0("Saving study records to ", file_path))
     },
     
     #' Title: Save field definitions to file
@@ -338,7 +349,7 @@ CastorApiClient = R6Class("CastorApiClient",
     #' @param file_path Target file path where to save the .Rdata file (default $HOME)
     #' 
     #' @export
-    save_field_definitions = function(file_path = file.path(path.expand("~"), "field_defs.Rdata")) {
+    save_field_defs = function(file_path = file.path(path.expand("~"), "field_defs.Rdata")) {
       field_defs <- self$field_defs
       save(field_defs, file = file_path)
       print(paste0("Saving study field definitions to ", file_path))

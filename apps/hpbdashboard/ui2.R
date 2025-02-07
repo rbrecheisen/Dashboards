@@ -32,7 +32,7 @@ build_ui = function() {
           column(
             6,
             actionButton(
-              inputId = "save_info",
+              inputId = "save_credentials",
               label = "Save",
               width = "100%"
             )
@@ -43,6 +43,18 @@ build_ui = function() {
               inputId = "connect",
               label = "Connect",
               width = "100%"
+            )
+          )
+        ),
+        br(),
+        fluidRow(
+          column(
+            12,
+            actionButton(
+              inputId = "save_study_data",
+              label = "Save study data",
+              width = "100%",
+              disabled = TRUE
             )
           )
         ),
@@ -62,7 +74,7 @@ build_ui = function() {
             "PANCREAS: Number of complications",
             "PANCREAS: Number of days MDT to surgery",
             "PANCREAS: Number of days surgery to discharge"
-          )
+          ),
         )
       ),
       mainPanel(
