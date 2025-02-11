@@ -1,6 +1,19 @@
 library(R6)
 
 
+#' @title Class for handling Castor API credentials
+#'
+#' @field client_id_file_name Client ID file name (default: "castorclientid.txt")
+#' @field client_id_file_path Full client ID file path
+#' @field client_id Client ID
+#' @field client_secret_file_name Client secret file name (default: "castorclientsecret.txt")
+#' @field client_secret_file_path Full client secret file path
+#' @field client_secret Client secret
+#' @field study_name_file_name Study name file name (default: castorstudy.txt")
+#' @field study_name_file_path Study name file path
+#' @field study_name Study name
+#' 
+#' @export
 CastorApiCredentials <- R6Class("CastorApiCredentials",
   public = list(
     
@@ -14,6 +27,13 @@ CastorApiCredentials <- R6Class("CastorApiCredentials",
     study_name_file_path = NULL,
     study_name = NULL,
     
+    #' @description Initializes Castor API credentials handler
+    #' 
+    #' @param client_id_file_name Client ID file name
+    #' @param client_secret_file_name Client secret file name
+    #' @param study_name_file_name Study name file name
+    #' 
+    #' @export
     initialize = function(client_id_file_name = NULL, client_secret_file_name = NULL, study_name_file_name = NULL) {
       if(!is.null(client_id_file_name)) {
         self$client_id_file_name <- client_id_file_name
@@ -37,6 +57,11 @@ CastorApiCredentials <- R6Class("CastorApiCredentials",
       print(paste0("Using study_name_file_path = ", self$study_name_file_path))
     },
     
+    #' @description Loads client ID from file
+    #' 
+    #' @return Client ID or NULL if not found
+    #' 
+    #' @export
     load_client_id = function() {
       if(file.exists(self$client_id_file_path)) {
         client_id_file <- file(self$client_id_file_path, "r")
@@ -53,6 +78,11 @@ CastorApiCredentials <- R6Class("CastorApiCredentials",
       }
     },
     
+    #' @description Saves client ID to file
+    #' 
+    #' @param client_id Client ID
+    #' 
+    #' @export
     save_client_id = function(client_id) {
       if(!file.exists(self$client_id_file_path)) {
         client_id_file <- file(self$client_id_file_path, "w")
@@ -65,6 +95,11 @@ CastorApiCredentials <- R6Class("CastorApiCredentials",
       }
     },
     
+    #' @description Loads client secret from file
+    #' 
+    #' @return Client secret or NULL if not found
+    #' 
+    #' @export
     load_client_secret = function() {
       if(file.exists(self$client_secret_file_path)) {
         client_secret_file <- file(self$client_secret_file_path, "r")
@@ -81,6 +116,11 @@ CastorApiCredentials <- R6Class("CastorApiCredentials",
       }
     },
     
+    #' @description Saves client secret to file
+    #' 
+    #' @param client_id Client secret
+    #' 
+    #' @export
     save_client_secret = function(client_secret) {
       if(!file.exists(self$client_secret_file_path)) {
         client_secret_file <- file(self$client_secret_file_path, "w")
@@ -93,6 +133,11 @@ CastorApiCredentials <- R6Class("CastorApiCredentials",
       }
     },
     
+    #' @description Loads study name from file
+    #' 
+    #' @return Study name or NULL if not found
+    #' 
+    #' @export
     load_study_name = function() {
       if(file.exists(self$study_name_file_path)) {
         study_name_file <- file(self$study_name_file_path, "r")
@@ -109,6 +154,11 @@ CastorApiCredentials <- R6Class("CastorApiCredentials",
       }
     },
     
+    #' @description Saves study name to file
+    #' 
+    #' @param study_name Study name
+    #' 
+    #' @export
     save_study_name = function(study_name) {
       if(!file.exists(self$study_name_file_path)) {
         study_name_file <- file(self$study_name_file_path, "w")
