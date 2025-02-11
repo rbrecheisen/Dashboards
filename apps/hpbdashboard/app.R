@@ -6,7 +6,7 @@ library(DT)
 source("castorapiclient.R")
 source("credentials.R")
 source("charts.R")
-source("ui2.R")
+source("ui.R")
 
 
 load_credentials <- function(session) {
