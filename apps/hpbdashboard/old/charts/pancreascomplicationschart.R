@@ -28,7 +28,6 @@ PancreasComplicationsChart = R6Class(
           complicatie_ok == 1,
           complicaties_waarvoor_reinterventie == 1,
           orgaanfalen %in% c("Single-organ", "Multi-organ")
-          # if_else(is.na(orgaanfalen), -1, orgaanfalen) %in% c(1, 2)
         ) %>%
         mutate(
           date_operatie = ymd(date_operatie),
