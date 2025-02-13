@@ -1,3 +1,5 @@
+.libPaths(file.path(getwd(), "R-Portable/library"))
+
 required_packages <- c(
   "shiny",
   "shinyjs",
@@ -12,14 +14,16 @@ required_packages <- c(
   "devtools"
 )
 
-missing_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
-
-if (length(missing_packages) > 0) {
-  install.packages(missing_packages)
+install_if_missing <- function(p) {
+  if(!requireNamespace(p, quietly = TRUE)) install.packages(p, repos = "https://cloud.r-project.org/")
 }
 
-invisible(lapply(missing_packages, library, character.only = TRUE))
+# missing_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
 
-if(!requireNamespace("CastoR", quietly = TRUE)) {
-  devtools::install_github("rbrecheisen/CastoR", dependencies = TRUE, force = TRUE)
-}
+# if (length(missing_packages) > 0) {
+#   install.packages(missing_packages)
+# }
+# 
+# invisible(lapply(missing_packages, library, character.only = TRUE))
+
+invisible(sapply(required_packages, install_if_missing))

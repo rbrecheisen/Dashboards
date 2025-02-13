@@ -1,5 +1,3 @@
-source("dependencies.R")
-
 library(shiny)
 library(DT)
 
@@ -153,6 +151,3 @@ server <- function(input, output, session) {
     }
   })
 }
-
-
-shinyApp(build_ui(), server)
