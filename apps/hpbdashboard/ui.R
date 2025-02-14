@@ -30,15 +30,7 @@ ui <- fluidPage(
       ),
       fluidRow(
         column(
-          6,
-          actionButton(
-            inputId = "save_credentials",
-            label = "Save",
-            width = "100%"
-          )
-        ),
-        column(
-          6,
+          12,
           actionButton(
             inputId = "connect",
             label = "Connect",

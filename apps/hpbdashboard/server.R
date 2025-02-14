@@ -81,12 +81,7 @@ server <- function(input, output, session) {
   #Load credentials and study name
   credentials <- load_credentials(session)
 
-  # User clicked 'Save' so save the credentials and study name
-  observeEvent(input$save_credentials, {
-    handle_save_credentials(credentials, input)
-  })
-
-  # User clicked 'Connect' so try and connect to Castor. This handler also saves the credentials
+  # User clicked 'Connect' so try and connect to Castor after saving credentials
   observeEvent(input$connect, {
     handle_save_credentials(credentials, input)
     client(handle_connect_and_get_client(input))
