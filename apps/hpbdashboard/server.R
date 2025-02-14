@@ -13,7 +13,7 @@ load_credentials <- function(session) {
   client_secret <- credentials$load_client_secret()
   study_name <- credentials$load_study_name()
 
-    if(!is.null(client_id)) {
+  if(!is.null(client_id)) {
     updateTextInput(session, "client_id", value = client_id)
   }
   else {
@@ -37,6 +37,8 @@ load_credentials <- function(session) {
   if(!is.null(client_id) && !is.null(client_secret) && !is.null(study_name)) {
     showNotification("Credentials successfully loaded", type = "message")
   }
+
+  return(credentials)
 }
 
 
@@ -77,15 +79,16 @@ server <- function(input, output, session) {
   client <- reactiveVal(NULL)
   
   #Load credentials and study name
-  load_credentials(session)
+  credentials <- load_credentials(session)
 
   # User clicked 'Save' so save the credentials and study name
   observeEvent(input$save_credentials, {
     handle_save_credentials(credentials, input)
   })
 
-  # User clicked 'Connect' so try and connect to Castor
+  # User clicked 'Connect' so try and connect to Castor. This handler also saves the credentials
   observeEvent(input$connect, {
+    handle_save_credentials(credentials, input)
     client(handle_connect_and_get_client(input))
     if(!is.null(client)) {
       study_data(client()$get_study_data(input$study_name))
