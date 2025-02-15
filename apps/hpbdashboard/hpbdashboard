@@ -1,3 +1,4 @@
 #!/bin/bash
 
-/opt/anaconda3/envs/r_env/bin/Rscript --vanilla ./run_app.R
+#/opt/anaconda3/envs/r_env/bin/Rscript --vanilla ./run_app.R
+Rscript --vanilla ./run_app.R
