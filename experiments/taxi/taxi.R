@@ -1,5 +1,7 @@
 source("dependencies.R")
 
+# https://chatgpt.com/c/67a0e104-9158-800b-ae98-77d8933769fa
+
 library(stringr)
 library(dplyr)
 library(httr)
