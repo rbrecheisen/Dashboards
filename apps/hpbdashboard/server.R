@@ -42,10 +42,11 @@ load_credentials <- function(session) {
 }
 
 
-handle_save_credentials <- function(credentials, input) {
+save_credentials <- function(credentials, input) {
   if(!is.null(input$client_id) && !is.null(input$client_secret)) {
     credentials$save_client_id(input$client_id)
     credentials$save_client_secret(input$client_secret)
+    credentials$save_study_name(input$study_name)
     showNotification("Credentials saved", type = "message")
   }
   else {
@@ -83,7 +84,7 @@ server <- function(input, output, session) {
 
   # User clicked 'Connect' so try and connect to Castor after saving credentials
   observeEvent(input$connect, {
-    handle_save_credentials(credentials, input)
+    save_credentials(credentials, input)
     client(handle_connect_and_get_client(input))
     if(!is.null(client)) {
       study_data(client()$get_study_data(input$study_name))
