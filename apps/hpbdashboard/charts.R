@@ -257,7 +257,7 @@ show_pancreas_nr_procedures_chart <- function(study_data) {
   print(df)
 
   ggplot(df, aes(x = month, y = num_procedures, fill = operatie_pancreas_techniek)) +
-    geom_bar(stat = "identity") +
+    geom_bar(stat = "identity", position = "dodge") +
     labs(
       title = "PANCREAS: Number of procedures",
       x = "Month",
