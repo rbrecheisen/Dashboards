@@ -105,6 +105,7 @@ server <- function(input, output, session) {
     client()$save_records()
     client()$save_field_defs()
     client()$save_na_counts()
+    showNotification(paste0("Saved study data to ", path.expand("~")), type = "message")
   })
   
   # Create dynamic output panel that can display the selected chart later
