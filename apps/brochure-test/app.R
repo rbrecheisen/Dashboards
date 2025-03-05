@@ -1,3 +1,6 @@
+# install.packages("remote")
+# devtools::install_github("ColinFay/brochure")
+
 library(shiny)
 library(brochure)
 
