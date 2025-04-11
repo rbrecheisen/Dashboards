@@ -11,5 +11,4 @@ proxy:
       display-name: HPB dashboard
       container-image: hpbdashboard
       container-port: 3838
-      # container-network: sp-network
       internal-networking: true

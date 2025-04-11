@@ -1,26 +1,7 @@
 services:
-  shinyproxy:
-    image: openanalytics/shinyproxy:latest
-    user: root
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./shinyproxy/application.yml:/opt/shinyproxy/application.yml
-      
-      # Only add this line when running ShinyProxy image on Windows!
-      - //var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - app
-    networks:
-      - sp-network
-
-  app:
+  hpbdashboard:
     build:
       context: ./app
     image: hpbdashboard
-    networks:
-      - sp-network
-
-networks:
-  sp-network:
-    driver: bridge
+    ports:
+      - "3838:3838"
