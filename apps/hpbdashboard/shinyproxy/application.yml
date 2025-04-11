@@ -1,0 +1,13 @@
+proxy:
+  title: My Apps
+  port: 8080
+  authentication: simple
+  users:
+    - name: ralph
+      password: secret
+      roles: [admin]
+  specs:
+    - id: shiny-app
+      display-name: HPB dashboard
+      container-image: hpbdashboard
+      container-port: 3838
