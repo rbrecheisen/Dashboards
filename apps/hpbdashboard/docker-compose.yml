@@ -11,8 +11,16 @@ services:
       - //var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - app
+    networks:
+      - sp-network
 
   app:
     build:
       context: ./app
     image: hpbdashboard
+    networks:
+      - sp-network
+
+networks:
+  sp-network:
+    driver: bridge

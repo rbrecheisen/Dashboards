@@ -7,7 +7,9 @@ proxy:
       password: secret
       roles: [admin]
   specs:
-    - id: shiny-app
+    - id: hpbdashboard
       display-name: HPB dashboard
       container-image: hpbdashboard
       container-port: 3838
+      # container-network: sp-network
+      internal-networking: true
