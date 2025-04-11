@@ -5,3 +5,8 @@ services:
     image: hpbdashboard
     ports:
       - "3838:3838"
+    volumes:
+      - hpbdashboard_data:/home/shiny
+      
+volumes:
+  hpbdashboard_data:
